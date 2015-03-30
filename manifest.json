@@ -3,14 +3,25 @@
   "description": "Named WebSocket server",
   "version": "0.0.1",
   "manifest_version": 2,
-  "permissions": [
-    {
-      "socket": [ "tcp-connect", "tcp-listen" ]
+  "permissions": ["system.network"],
+  "sockets": {
+    "tcpServer": {
+      "listen": ""
+    },
+    "tcp": {
+      "connect": "*"
+    },
+    "udp": {
+      "send": "*"
     }
-  ],
+  },
   "app": {
     "background": {
-      "scripts": [ "lib/background.js" ]
+      "scripts": [
+        "lib/es6-promise.js",
+        "lib/tcp-server.js",
+        "src/background.js"
+      ]
     }
   }
 }
