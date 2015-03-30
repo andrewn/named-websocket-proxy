@@ -19,7 +19,14 @@
     "background": {
       "scripts": [
         "lib/es6-promise.js",
+        "lib/buffer-utils.js",
+        "lib/event-source.js",
+        "lib/sha1.js",
+
         "lib/tcp-server.js",
+        "lib/http-server.js",
+        "lib/http-request.js",
+
         "src/utils.js",
         "src/background.js"
       ]

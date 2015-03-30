@@ -17,12 +17,11 @@ Running
 
 TBD
 
-Authors
+Authors and License
 ---
 
-See [AUTHORS](AUTHORS).
+The code in /lib is from various sources. The individual files contain links to the source and the license terms.
 
-License
----
+If no license terms given in individual files then the license in [LICENSE](LICENSE) will apply.
 
-This code is released under an Apache 2 license. See [LICENSE](LICENSE).
+See [AUTHORS](AUTHORS) for the source of code not in `lib/`.

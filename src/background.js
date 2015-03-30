@@ -12,7 +12,7 @@ var server;
 chrome.app.runtime.onLaunched.addListener(function() {
   console.log('App launched.');
 
-  startServer(config.tcp.address, config.tcp.port, handleIncomingConnection)
+  startServer(config.tcp.address, config.tcp.port);
 });
 
 
@@ -21,8 +21,18 @@ function startServer(address, port, handler) {
       server.disconnect();
     }
 
-    server = new TcpServer(address, port);
-    server.listen(handler);
+    // server = new TcpServer(address, port);
+    server = new HttpServer();
+    server.listen(port, address);
+
+    server.addEventListener('request', function (req) {
+      console.log('A request!', req);
+      req.writeHead(200, { 'X-Amazing': 'Awesome' });
+      req.end();
+
+      //Keep socket open
+      return true;
+    });
 }
 
 function stopServer() {
