@@ -20,6 +20,7 @@
       "scripts": [
         "lib/es6-promise.js",
         "lib/tcp-server.js",
+        "src/utils.js",
         "src/background.js"
       ]
     }

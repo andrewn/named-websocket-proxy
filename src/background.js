@@ -12,28 +12,24 @@ var server;
 chrome.app.runtime.onLaunched.addListener(function() {
   console.log('App launched.');
 
-  createTcpServerAndBindToPort(config.tcp.address, config.tcp.port)
-    .then(success, fail);
+  startServer(config.tcp.address, config.tcp.port, handleIncomingConnection)
 });
 
-function createTcpServerAndBindToPort(address, port) {
-  console.log('createTcpServerAndBindToPort(address %o, port %o)', address, port);
-  return new Promise(function (resolve, reject) {
+
+function startServer(address, port, handler) {
     if (server) {
       server.disconnect();
     }
 
     server = new TcpServer(address, port);
-    server.listen(function () { console.log('Listening'); });
-  });
+    server.listen(handler);
 }
 
-
-
-function success() {
-  console.log('Success', arguments);
+function stopServer() {
+  server.disconnect();
+  server = null;
 }
 
-function fail() {
-  console.error('Fail', arguments);
+function handleIncomingConnection(tcpConnection, info) {
+  console.log('Incoming connection', arguments);
 }
