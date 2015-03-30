@@ -26,6 +26,9 @@
         "lib/tcp-server.js",
         "lib/http-server.js",
         "lib/http-request.js",
+        "lib/websocket-request.js",
+        "lib/websocket-server-socket.js",
+        "lib/websocket-server.js",
 
         "src/utils.js",
         "src/background.js"

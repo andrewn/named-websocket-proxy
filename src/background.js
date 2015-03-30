@@ -7,7 +7,8 @@ var config = {
   }
 };
 
-var server;
+var server,
+    wsServer;
 
 chrome.app.runtime.onLaunched.addListener(function() {
   console.log('App launched.');
@@ -23,16 +24,35 @@ function startServer(address, port, handler) {
 
     // server = new TcpServer(address, port);
     server = new HttpServer();
+    wsServer = new WebSocketServer(server);
     server.listen(port, address);
 
     server.addEventListener('request', function (req) {
-      console.log('A request!', req);
+      console.log('An HTTP request!', req);
       req.writeHead(200, { 'X-Amazing': 'Awesome' });
       req.end();
+      //Keep socket open
+      return true;
+    });
+
+    wsServer.addEventListener('request', function (req) {
+      console.log('An WebSocket request!', req);
+      var socket = req.accept();
+
+      socket.addEventListener('message', function (e) {
+        console.log('Message from client', e);
+      });
+
+      socket.addEventListener('close', function () {
+        console.log('Socket has closed');
+      });
+
+      socket.send('Hello');
 
       //Keep socket open
       return true;
     });
+
 }
 
 function stopServer() {
