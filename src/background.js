@@ -7,59 +7,43 @@ var config = {
   }
 };
 
-var server,
-    wsServer;
+var proxy;
 
 chrome.app.runtime.onLaunched.addListener(function() {
   console.log('App launched.');
-
-  startServer(config.tcp.address, config.tcp.port);
+  startProxy(config.tcp.address, config.tcp.port);
+  launchWindow();
 });
 
+chrome.runtime.onSuspend.addListener(function() {
+  console.log('App is being suspended');
+  stopProxy();
+});
 
-function startServer(address, port, handler) {
-    if (server) {
-      server.disconnect();
-    }
+function startProxy(address, port, handler) {
+  if (proxy) {
+    console.log('Disconnect proxy');
+    proxy.disconnect();
+  }
 
-    // server = new TcpServer(address, port);
-    server = new HttpServer();
-    wsServer = new WebSocketServer(server);
-    server.listen(port, address);
-
-    server.addEventListener('request', function (req) {
-      console.log('An HTTP request!', req);
-      req.writeHead(200, { 'X-Amazing': 'Awesome' });
-      req.end();
-      //Keep socket open
-      return true;
-    });
-
-    wsServer.addEventListener('request', function (req) {
-      console.log('An WebSocket request!', req);
-      var socket = req.accept();
-
-      socket.addEventListener('message', function (e) {
-        console.log('Message from client', e);
-      });
-
-      socket.addEventListener('close', function () {
-        console.log('Socket has closed');
-      });
-
-      socket.send('Hello');
-
-      //Keep socket open
-      return true;
-    });
-
+  proxy = new Proxy(address, port);
 }
 
-function stopServer() {
-  server.disconnect();
-  server = null;
+function stopProxy() {
+  proxy.disconnect();
+  proxy = null;
 }
 
-function handleIncomingConnection(tcpConnection, info) {
-  console.log('Incoming connection', arguments);
+function launchWindow() {
+  chrome.app.window.create('ui/main.html', {
+    id: 'main-window',
+    bounds: {
+      width: 800,
+      height: 600,
+      left: 100,
+      top: 100
+    },
+    minWidth: 800,
+    minHeight: 600
+  });
 }

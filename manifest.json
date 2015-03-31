@@ -31,6 +31,7 @@
         "lib/websocket-server.js",
 
         "src/utils.js",
+        "src/proxy.js",
         "src/background.js"
       ]
     }
