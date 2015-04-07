@@ -5,6 +5,7 @@
   "main": "background/main.js",
   "scripts": {
     "build": "./node_modules/.bin/browserify background/src/main.js -o dist/background.js",
+    "dev": "./node_modules/.bin/watchify -d background/src/main.js -o dist/background.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,6 +20,7 @@
   "homepage": "https://github.com/andrewn/chrome-namedwebsocket-proxy",
   "devDependencies": {
     "browserify": "~9.0.7",
-    "es6-promise": "~2.0.1"
+    "es6-promise": "~2.0.1",
+    "watchify": "~3.1.0"
   }
 }
