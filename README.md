@@ -28,6 +28,11 @@ Development
 2. Run `npm install` in this directory
 3. Run `npm run build` to generate the `dist/background.js` file.
 
+Tests
+---
+
+After installing the test harness using `npm install`, you can run tests using `npm test`.
+
 Authors and License
 ---
 
