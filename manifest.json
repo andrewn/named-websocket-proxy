@@ -18,21 +18,7 @@
   "app": {
     "background": {
       "scripts": [
-        "lib/es6-promise.js",
-        "lib/buffer-utils.js",
-        "lib/event-source.js",
-        "lib/sha1.js",
-
-        "lib/tcp-server.js",
-        "lib/http-server.js",
-        "lib/http-request.js",
-        "lib/websocket-request.js",
-        "lib/websocket-server-socket.js",
-        "lib/websocket-server.js",
-
-        "src/utils.js",
-        "src/proxy.js",
-        "src/background.js"
+        "dist/background.js"
       ]
     }
   }

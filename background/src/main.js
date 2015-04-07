@@ -1,3 +1,5 @@
+var Proxy = require('./proxy');
+
 console.log('Background page initialised');
 
 var config = {

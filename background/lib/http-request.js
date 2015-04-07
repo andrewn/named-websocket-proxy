@@ -1,7 +1,5 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-(function () {
-
 // Http response code strings.
 var responseMap = {
   200: 'OK',
@@ -47,7 +45,7 @@ function HttpRequest(headers, socketId) {
 }
 
 HttpRequest.prototype = {
-  __proto__: EventSource.prototype,
+  __proto__: require('./event-source').prototype,
 
   /**
    * Closes the Http request.
@@ -177,6 +175,4 @@ HttpRequest.prototype = {
 };
 
 
-this['HttpRequest'] = HttpRequest;
-
-}).call(this);
+module.exports = HttpRequest;

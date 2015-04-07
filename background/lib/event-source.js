@@ -5,7 +5,6 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  **/
-(function () {
 
 /**
  * An event source can dispatch events. These are dispatched to all of the
@@ -68,6 +67,4 @@ EventSource.prototype = {
   }
 };
 
-this['EventSource'] = EventSource;
-
-}).call(this);
+module.exports = EventSource;

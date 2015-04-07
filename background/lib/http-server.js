@@ -1,6 +1,7 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-(function () {
+var EventSource = require('./event-source'),
+    TcpServer   = require('./tcp-server').TcpServer;
 
 /**
  * HttpServer provides a lightweight Http web server. Currently it only
@@ -184,6 +185,4 @@ HttpServer.prototype = {
 
 };
 
-this['HttpServer'] = HttpServer;
-
-}).call(this);
+module.exports = HttpServer;

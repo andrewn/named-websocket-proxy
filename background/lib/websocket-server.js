@@ -1,6 +1,6 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-(function () {
+var EventSource = require('./event-source');
 
 /**
  * Constructs a server which is capable of accepting WebSocket connections.
@@ -37,6 +37,4 @@ WebSocketServer.prototype = {
   }
 };
 
-this['WebSocketServer'] = WebSocketServer;
-
-}).call(this);
+module.exports = WebSocketServer;

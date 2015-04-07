@@ -1,0 +1,23 @@
+{
+  "name": "chrome-namedwebsocket-proxy",
+  "version": "0.0.0",
+  "description": "Chrome Named Websocket Proxy ===",
+  "main": "background/main.js",
+  "scripts": {
+    "build": "./node_modules/.bin/browserify background/src/main.js -o dist/background.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Andrew Nicolaou",
+  "license": "Apache-2",
+  "bugs": {
+    "url": "https://github.com/andrewn/chrome-namedwebsocket-proxy/issues"
+  },
+  "homepage": "https://github.com/andrewn/chrome-namedwebsocket-proxy",
+  "devDependencies": {
+    "browserify": "~9.0.7"
+  }
+}

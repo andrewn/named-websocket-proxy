@@ -1,6 +1,6 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-(function () {
+var EventSource = require('./event-source');
 
 /**
  * Constructs a WebSocketServerSocket using the given socketId. This should be
@@ -274,6 +274,4 @@ WebSocketServerSocket.prototype = {
   }
 };
 
-this['WebSocketServerSocket'] = WebSocketServerSocket;
-
-}).call(this);
+module.exports = WebSocketServerSocket;

@@ -1,6 +1,6 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-(function () {
+var HttpRequest = require('./http-request');
 
 /**
  * Constructs a WebSocket request object from an Http request. This invalidates
@@ -70,6 +70,4 @@ WebSocketRequest.prototype = {
   }
 }
 
-this['WebSocketRequest'] = WebSocketRequest;
-
-}).call(this);
+module.exports = WebSocketRequest;
