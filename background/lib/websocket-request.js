@@ -1,6 +1,8 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-var HttpRequest = require('./http-request');
+var HttpRequest = require('./http-request'),
+    WebSocketServerSocket = require('./websocket-server-socket'),
+    Sha1 = require('./sha1');
 
 /**
  * Constructs a WebSocket request object from an Http request. This invalidates

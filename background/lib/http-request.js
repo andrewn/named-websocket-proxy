@@ -1,5 +1,7 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
+var stringToArrayBuffer = require('./buffer-utils').stringToArrayBuffer;
+
 // Http response code strings.
 var responseMap = {
   200: 'OK',

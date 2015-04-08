@@ -1,6 +1,7 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-var EventSource = require('./event-source');
+var EventSource = require('./event-source'),
+    arrayBufferToString = require('./buffer-utils').arrayBufferToString;
 
 /**
  * Constructs a WebSocketServerSocket using the given socketId. This should be

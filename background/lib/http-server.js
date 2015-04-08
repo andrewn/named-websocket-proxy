@@ -1,7 +1,9 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
 var EventSource = require('./event-source'),
-    TcpServer   = require('./tcp-server').TcpServer;
+    TcpServer   = require('./tcp-server').TcpServer,
+    HttpRequest = require('./http-request'),
+    arrayBufferToString = require('./buffer-utils').arrayBufferToString;
 
 /**
  * HttpServer provides a lightweight Http web server. Currently it only

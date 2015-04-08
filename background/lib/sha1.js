@@ -232,3 +232,5 @@ Sha1.prototype.digest = function() {
 
   return digest;
 };
+
+module.exports = Sha1;
