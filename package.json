@@ -5,7 +5,7 @@
   "main": "background/main.js",
   "scripts": {
     "build": "./node_modules/.bin/browserify background/src/main.js -o dist/background.js",
-    "dev": "./node_modules/.bin/watchify -d background/src/main.js -o dist/background.js",
+    "dev": "./node_modules/.bin/watchify -v -d background/src/main.js -o dist/background.js",
     "test": "./node_modules/.bin/mocha --recursive"
   },
   "repository": {
@@ -23,6 +23,9 @@
     "es6-promise": "~2.0.1",
     "watchify": "~3.1.0",
     "mocha": "~2.2.1",
-    "chai": "~2.2.0"
+    "chai": "~2.2.0",
+    "ampersand-state": "~4.5.3",
+    "ampersand-collection-lodash-mixin": "~2.0.0",
+    "ampersand-collection": "~1.4.5"
   }
 }
