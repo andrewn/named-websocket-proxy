@@ -14,15 +14,21 @@ var Channel = function (params) {
 
 Channel.prototype.addSocket = function (s) {
   var p = new Peer(s, this);
-  this.peers.forEach(connect);
+  this.peers.forEach(connectPeer(p));
   this.peers.push(p);
   return p;
 }
 
-function connect(peer) {
-  peer.send({
-    action: 'connect'
-  });
+function connectPeer(sourcePeer) {
+  return function (targetPeer) {
+    var payload = JSON.stringify({
+        action:  'connect',
+        source:  sourcePeer.id,
+        target:  targetPeer.id,
+        payload: /* payload */ '',
+      });
+    targetPeer.send(payload);
+  }
 }
 
 /*

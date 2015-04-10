@@ -18,7 +18,7 @@ Peer.prototype.handleEvent = function () {
 };
 
 Peer.prototype.send = function () {
-  return this.socket.send.apply(this, arguments);
+  return this.socket.send.apply(this.socket, arguments);
 };
 
 Peer.prototype.valueOf = function () {

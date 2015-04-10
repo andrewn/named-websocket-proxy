@@ -55,7 +55,7 @@ var Proxy = function (address, port) {
       console.log('Socket has closed');
     });
 
-    socket.send('Hello');
+    // socket.send('Hello');
 
     return keepConnectionOpen;
   }.bind(this));

@@ -99,7 +99,7 @@ WebSocketServerSocket.prototype = {
         break; // Insufficient data, wait for more.
       }
     }
-    console.warn('Needs to read more data');
+    //console.warn('Needs to read more data');
     //socket.read(t.socketId_, onDataRead);
   },
 
@@ -268,8 +268,8 @@ WebSocketServerSocket.prototype = {
   },
 
   close_: function() {
-    chrome.socket.disconnect(this.socketId_);
-    chrome.socket.close(this.socketId_);
+    chrome.sockets.tcp.disconnect(this.socketId_);
+    chrome.sockets.tcp.close(this.socketId_);
     this.readyState = 3;
     this.dispatchEvent('close');
   }
