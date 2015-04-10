@@ -31,38 +31,4 @@ function connectPeer(sourcePeer) {
   }
 }
 
-/*
-function connect(peer) {
-  console.log('\n\npeer: ');
-  console.log(typeof peer);
-  peer.send({
-    action: 'connect'
-  });
-}
-
-var instanceMethods = {
-  addPeer: function (p) {
-    console.log('addPeer');
-    console.log(this.peers.length);
-
-    this.peers.models.forEach(connect);
-    this.peers.add(p);
-  }
-}
-
-var Channel = State.extend(instanceMethods, {
-  idAttribute: 'name',
-  props: {
-    name: {
-      type: 'string',
-      required: true,
-      setOnce: true
-    }
-  },
-  collections: {
-    peers: Peers
-  }
-});
-*/
-
 module.exports = Channel;
