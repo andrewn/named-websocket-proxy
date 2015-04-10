@@ -1,6 +1,7 @@
 var State = require('ampersand-state');
 
-var Peers = require('./peers');
+var Peers = require('./peers'),
+    Peer = require('./peer');
 
 var Channel = function (params) {
   this.name = params.name;
@@ -8,17 +9,17 @@ var Channel = function (params) {
     throw new Error('name is required');
   }
 
-  this.peers = [];
+  this.peers = new Peers();
 }
 
-Channel.prototype.addPeer = function (p) {
+Channel.prototype.addSocket = function (s) {
+  var p = new Peer(s, this);
   this.peers.forEach(connect);
   this.peers.push(p);
+  return p;
 }
 
 function connect(peer) {
-  console.log('\n\npeer: ');
-  console.log(typeof peer);
   peer.send({
     action: 'connect'
   });

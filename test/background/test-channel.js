@@ -1,7 +1,8 @@
 var helpers = require('../helpers');
 
 var assert = helpers.assert,
-    createPeerMock = helpers.createPeerMock;
+    createPeerMock = helpers.createPeerMock,
+    createSocketMock = helpers.createSocketMock;
 
 var Channel = require('../../background/src/channel');
 
@@ -17,26 +18,26 @@ describe('Channel', function () {
       assert.equal(0, c.peers.length);
     });
   });
-  describe('.addPeer', function () {
-    it.skip('does nothing if it\'s already added', function () {
+  describe('.addSocket', function () {
+    it('returns a peer object connected to channel', function () {
+      var s = createSocketMock();
       var c = new Channel({ name: 'my-channel-name' });
-      var p = createPeerMock();
-      c.addPeer(p);
-      assert.equal(1, c.peers.length);
+      var p;
 
-      c.addPeer(p);
-      assert.equal(1, c.peers.length);
+      p = c.addSocket(s);
+
+      assert.ok(p);
     });
-    it('fires `connect` event on all other peers', function () {
+    it('send `connect` message on all peers', function () {
       var c = new Channel({ name: 'my-channel-name' }),
-          p1 = createPeerMock(),
-          p2 = createPeerMock();
+          s1 = createSocketMock(),
+          s2 = createSocketMock();
 
-      c.addPeer(p1);
-      c.addPeer(p2);
+      c.addSocket(s1); // no conect fired
+      c.addSocket(s2); // connect fired on s1
 
-      assert.ok(p1.send.called, 'first peer not called');
-      assert.ok(p2.send.notCalled, 'second peer called');
+      assert.ok(s1.send.called, 'first peer not called');
+      assert.ok(s2.send.notCalled, 'second peer called');
     });
     it('validates name');
   });

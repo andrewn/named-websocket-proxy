@@ -44,7 +44,8 @@ var Proxy = function (address, port) {
     console.log('channelName: ', channelName);
 
     // Associate socket with channel
-    this.channels_.associatePeer(channelName, new Peer(socket));
+    var channel = this.channels_.findOrCreate(channelName);
+    var peer = channel.addSocket(socket);
 
     socket.addEventListener('message', function (e) {
       console.log('Message from client', e);

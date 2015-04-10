@@ -6,23 +6,18 @@ var assert = helpers.assert,
 var Channels = require('../../background/src/channels');
 
 describe('Channels', function () {
-  describe('.associatePeer', function () {
+  describe('.findOrCreate', function () {
     beforeEach(function () {
       this.c = new Channels();
     });
     it('should create a new Channel if none exists', function () {
-      var channelA = this.c.associatePeer('channel-a', createPeerMock());
+      var channelA = this.c.findOrCreate('channel-a');
       assert.ok(channelA);
 
-      var channelB = this.c.associatePeer('channel-b', createPeerMock());
+      var channelB = this.c.findOrCreate('channel-b');
       assert.ok(channelB);
 
       assert.notEqual(channelA, channelB);
-    });
-    it('should attach to an existing Channel if it exists', function () {
-      var first  = this.c.associatePeer('my-channel-name', createPeerMock());
-      var second = this.c.associatePeer('my-channel-name', createPeerMock());
-      assert.equal(first, second);
     });
   });
 });

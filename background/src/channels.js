@@ -4,14 +4,13 @@ var Collection = require('ampersand-collection'),
 var Channel = require('./channel');
 
 var instanceMethods = {
-  associatePeer: function (name, peer) {
+  findOrCreate: function (name) {
     var channel = this.get(name);
 
     if (!channel) {
       channel = new Channel({ name: name });
       this.add(channel);
     }
-    channel.addPeer(peer);
 
     return channel;
   }

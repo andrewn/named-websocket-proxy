@@ -5,8 +5,14 @@ module.exports = {
   assert: require('chai').assert,
   spy: sinon.spy,
   mock: sinon.mock,
-  createPeerMock: function () {
-    return { send: sinon.spy() };
+  createPeerMock: (function () {
+    var id = 0;
+    return function () {
+      return { id: 'peer-' + id++, send: sinon.spy() };
+    }
+  })(),
+  createChannelMock: function () {
+    return { name: 'mock-channel' };
   },
   createSocketMock: function () {
     var s = new EventSource();

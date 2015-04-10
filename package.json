@@ -26,6 +26,9 @@
     "chai": "~2.2.0",
     "ampersand-state": "~4.5.3",
     "ampersand-collection-lodash-mixin": "~2.0.0",
-    "ampersand-collection": "~1.4.5"
+    "ampersand-collection": "~1.4.5",
+    "sinon": "~1.14.1",
+    "lodash": "~3.6.0",
+    "node-uuid": "~1.4.3"
   }
 }
