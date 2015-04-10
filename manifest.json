@@ -3,7 +3,7 @@
   "description": "Named WebSocket server",
   "version": "0.0.1",
   "manifest_version": 2,
-  "permissions": ["system.network"],
+  "permissions": ["system.network", "*"],
   "sockets": {
     "tcpServer": {
       "listen": ""
@@ -14,6 +14,9 @@
     "udp": {
       "send": "*"
     }
+  },
+  "sandbox": {
+    "pages": ["ui/console.html"]
   },
   "app": {
     "background": {

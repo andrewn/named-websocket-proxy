@@ -37,7 +37,7 @@ function stopProxy() {
 }
 
 function launchWindow() {
-  chrome.app.window.create('ui/main.html', {
+  chrome.app.window.create('ui/console.html', {
     id: 'main-window',
     bounds: {
       width: 800,
