@@ -41,6 +41,28 @@ describe('Channel', function () {
     });
     it('validates name');
   });
+  describe('.removePeer', function () {
+    it('removes peer from list', function () {
+      var s = createSocketMock();
+      var c = new Channel({ name: 'my-channel-name' });
+      var p;
+
+      p = c.addSocket(s);
+
+      c.removePeer(p);
+      assert.equal(c.peers.length, 0);
+    });
+    it('fires disconnect event on all connected peers'/*, function () {
+      var s = createSocketMock();
+      var c = new Channel({ name: 'my-channel-name' });
+      var p;
+
+      p = c.addSocket(s);
+
+      c.removePeer(p);
+      assert.equal(c.peers.length, 0);
+    }*/);
+  });
   describe('.send', function () {
     it('sends messages to all peers');
   });

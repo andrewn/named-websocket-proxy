@@ -53,6 +53,7 @@ var Proxy = function (address, port) {
 
     socket.addEventListener('close', function () {
       console.log('Socket has closed');
+      channel.removePeer(peer);
     });
 
     // socket.send('Hello');

@@ -19,6 +19,11 @@ Channel.prototype.addSocket = function (s) {
   return p;
 }
 
+Channel.prototype.removePeer = function (p) {
+  this.peers.remove({ id: p.id });
+  return p;
+}
+
 function connectPeer(sourcePeer) {
   return function (targetPeer) {
     var payload = JSON.stringify({
