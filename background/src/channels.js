@@ -6,7 +6,7 @@ var Channel = require('./channel');
 var instanceMethods = {
   associatePeer: function (name, peer) {
     var channel = this.get(name);
-    console.log('channel', channel);
+
     if (!channel) {
       channel = new Channel({ name: name });
       this.add(channel);

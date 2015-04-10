@@ -1,6 +1,6 @@
-var chai = require('chai');
+var helpers = require('../helpers');
 
-var assert = chai.assert;
+var assert = helpers.assert;
 
 describe('tests', function () {
   it('should work', function () {
