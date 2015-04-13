@@ -3,7 +3,8 @@ var HttpServer = require('../lib/http-server'),
     EventSource = require('../lib/event-source');
 
 var Channels = require('./channels'),
-    Peer = require('./peer');
+    Peer = require('./peer'),
+    protocol = require('./shim-protocol');
 
 var Proxy = function (address, port) {
   EventSource.apply(this);
@@ -66,11 +67,7 @@ var Proxy = function (address, port) {
         console.log('Direct message action: ', payload);
         targetPeer = channel.getPeerById(payload.target);
         if (targetPeer) {
-          targetPeer.send(JSON.stringify({
-            action: 'message',
-            source: peer.id,
-            data: payload.data
-          }));
+          targetPeer.send( protocol.message(peer, payload.data) );
         }
       }
     });

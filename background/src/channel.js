@@ -1,7 +1,8 @@
 var State = require('ampersand-state');
 
 var Peers = require('./peers'),
-    Peer = require('./peer');
+    Peer = require('./peer'),
+    protocol = require('./shim-protocol');
 
 var Channel = function (params) {
   this.name = params.name;
@@ -45,34 +46,17 @@ Channel.prototype.getPeerById = function (id) {
 
 function broadcastMsgFromPeer(payload, sourcePeer) {
   return function (targetPeer) {
-    var msg = JSON.stringify({
-        action: 'broadcast',
-        source: sourcePeer.id,
-        target: targetPeer.id,
-        data  : payload,
-      });
-    targetPeer.send(msg);
+    targetPeer.send( protocol.broadcast(sourcePeer, targetPeer, payload) );
   }
 }
 
 function connect(sourcePeer, targetPeer) {
-  var msg = JSON.stringify({
-        action:  'connect',
-        source:  targetPeer.id,
-        target:  sourcePeer.id,
-        payload: /* payload */ '',
-      });
-  targetPeer.send(msg);
+  targetPeer.send( protocol.connect(sourcePeer, targetPeer) );
 }
 
 function disconnect(sourcePeer) {
   return function (targetPeer) {
-    var msg = JSON.stringify({
-          action:  'disconnect',
-          target:  sourcePeer.id, // peer that has disconnected
-          payload: /* payload */ '',
-        });
-    targetPeer.send(msg);
+    targetPeer.send( protocol.disconnect(sourcePeer) );
   };
 }
 

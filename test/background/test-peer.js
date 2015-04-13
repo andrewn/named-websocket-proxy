@@ -37,7 +37,7 @@ describe('Peer', function () {
     });
     it('should allow messages to be sent', function () {
       var socket = createSocketMock(),
-          msg = { a:1, b:2 },
+          msg = JSON.stringify({ a:1, b:2 }),
           peer = new Peer(socket, createChannelMock());
 
       peer.send(msg);
