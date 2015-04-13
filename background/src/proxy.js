@@ -48,8 +48,19 @@ var Proxy = function (address, port) {
     console.log('New peer on channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
     console.log('Peer has id ', peer.id);
 
-    socket.addEventListener('message', function (e) {
-      console.log('Message from client', e);
+    socket.addEventListener('message', function (evt) {
+      console.log('Message from peer id: ', peer.id);
+      var payload = {};
+      try {
+        payload = JSON.parse(evt.data);
+      } catch (err) {
+        console.error('Error parsing message', err, evt);
+      }
+
+      if (payload.action === 'broadcast') {
+        console.log('Broadcast action: ', payload);
+        channel.broadcastFromPeer(payload.data, peer);
+      }
     });
 
     socket.addEventListener('close', function () {

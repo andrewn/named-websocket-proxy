@@ -24,15 +24,31 @@ Channel.prototype.removePeer = function (p) {
   return p;
 }
 
+Channel.prototype.broadcastFromPeer = function (msg, peer) {
+  this.peers.reject(peer).forEach(broadcastMsgFromPeer(msg, peer));
+}
+
+function broadcastMsgFromPeer(payload, sourcePeer) {
+  return function (targetPeer) {
+    var msg = JSON.stringify({
+        action: 'broadcast',
+        source: sourcePeer.id,
+        target: targetPeer.id,
+        data  : payload,
+      });
+    targetPeer.send(msg);
+  }
+}
+
 function connectPeer(sourcePeer) {
   return function (targetPeer) {
-    var payload = JSON.stringify({
+    var msg = JSON.stringify({
         action:  'connect',
         source:  sourcePeer.id,
         target:  targetPeer.id,
         payload: /* payload */ '',
       });
-    targetPeer.send(payload);
+    targetPeer.send(msg);
   }
 }
 
