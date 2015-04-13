@@ -32,7 +32,6 @@ WebSocketServerSocket.prototype = {
     }
     if (!readInfo.data.byteLength) {
       console.warn('!readInfo.data.byteLength - needs to read more data');
-      // socket.read(t.socketId_, onDataRead);
       return;
     }
 
@@ -99,8 +98,6 @@ WebSocketServerSocket.prototype = {
         break; // Insufficient data, wait for more.
       }
     }
-    //console.warn('Needs to read more data');
-    //socket.read(t.socketId_, onDataRead);
   },
 
   /**
@@ -127,88 +124,6 @@ WebSocketServerSocket.prototype = {
     // Create a single callback for incoming socket data and errors
     chrome.sockets.tcp.onReceive.addListener(this.readData_.bind(this));
     chrome.sockets.tcp.onReceiveError.addListener(this.readData_.bind(this));
-
-    /*
-    var t = this;
-    var data = [];
-    var message = '';
-    var fragmentedOp = 0;
-    var fragmentedMessage = '';
-
-    var onDataRead = function(readInfo) {
-      if (readInfo.resultCode <= 0) {
-        t.close_();
-        return;
-      }
-      if (!readInfo.data.byteLength) {
-        socket.read(t.socketId_, onDataRead);
-        return;
-      }
-
-      var a = new Uint8Array(readInfo.data);
-      for (var i = 0; i < a.length; i++)
-        data.push(a[i]);
-
-      while (data.length) {
-        var length_code = -1;
-        var data_start = 6;
-        var mask;
-        var fin = (data[0] & 128) >> 7;
-        var op = data[0] & 15;
-
-        if (data.length > 1)
-          length_code = data[1] & 127;
-        if (length_code > 125) {
-          if ((length_code == 126 && data.length > 7) ||
-              (length_code == 127 && data.length > 14)) {
-            if (length_code == 126) {
-              length_code = data[2] * 256 + data[3];
-              mask = data.slice(4, 8);
-              data_start = 8;
-            } else if (length_code == 127) {
-              length_code = 0;
-              for (var i = 0; i < 8; i++) {
-                length_code = length_code * 256 + data[2 + i];
-              }
-              mask = data.slice(10, 14);
-              data_start = 14;
-            }
-          } else {
-            length_code = -1; // Insufficient data to compute length
-          }
-        } else {
-          if (data.length > 5)
-            mask = data.slice(2, 6);
-        }
-
-        if (length_code > -1 && data.length >= data_start + length_code) {
-          var decoded = data.slice(data_start, data_start + length_code).map(function(byte, index) {
-            return byte ^ mask[index % 4];
-          });
-          data = data.slice(data_start + length_code);
-          if (fin && op > 0) {
-            // Unfragmented message.
-            if (!t.onFrame_(op, arrayBufferToString(decoded)))
-              return;
-          } else {
-            // Fragmented message.
-            fragmentedOp = fragmentedOp || op;
-            fragmentedMessage += arrayBufferToString(decoded);
-            if (fin) {
-              if (!t.onFrame_(fragmentedOp, fragmentedMessage))
-                return;
-              fragmentedOp = 0;
-              fragmentedMessage = '';
-            }
-          }
-        } else {
-          break; // Insufficient data, wait for more.
-        }
-      }
-      socket.read(t.socketId_, onDataRead);
-    };
-    socket.read(this.socketId_, onDataRead);
-    */
   },
 
   onFrame_: function(op, data) {
