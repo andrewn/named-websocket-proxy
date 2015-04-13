@@ -14,9 +14,13 @@ module.exports = {
   createChannelMock: function () {
     return { name: 'mock-channel' };
   },
-  createSocketMock: function () {
-    var s = new EventSource();
-    s.send = sinon.spy();
-    return s;
-  }
+  createSocketMock: (function () {
+    var id = 0;
+    return function () {
+      var s = new EventSource();
+      s._id = 'socket-' + id++;
+      s.send = sinon.spy();
+      return s;
+    }
+  })()
 }

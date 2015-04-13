@@ -13,8 +13,18 @@ var Channel = function (params) {
 }
 
 Channel.prototype.addSocket = function (s) {
-  var p = new Peer(s, this);
-  this.peers.forEach(connectPeer(p));
+  var p = new Peer(s, this),
+      connectSourceToTarget = _.curry(connect)(p),
+      connectTargetToSource = _.curryRight(connect)(p);
+
+  this.peers.forEach( connectSourceToTarget );
+
+  if (this.peers.length > 0) {
+    this.peers.forEach( function (peer, index) {
+      connectTargetToSource(peer);
+    });
+  }
+
   this.peers.push(p);
   return p;
 }
@@ -40,16 +50,14 @@ function broadcastMsgFromPeer(payload, sourcePeer) {
   }
 }
 
-function connectPeer(sourcePeer) {
-  return function (targetPeer) {
-    var msg = JSON.stringify({
+function connect(sourcePeer, targetPeer) {
+  var msg = JSON.stringify({
         action:  'connect',
-        source:  sourcePeer.id,
-        target:  targetPeer.id,
+        source:  targetPeer.id,
+        target:  sourcePeer.id,
         payload: /* payload */ '',
       });
-    targetPeer.send(msg);
-  }
+  targetPeer.send(msg);
 }
 
 module.exports = Channel;

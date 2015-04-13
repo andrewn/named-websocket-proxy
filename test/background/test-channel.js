@@ -28,16 +28,34 @@ describe('Channel', function () {
 
       assert.ok(p);
     });
-    it('send `connect` message on all peers', function () {
+    it('send `connect` message to all peers', function () {
       var c = new Channel({ name: 'my-channel-name' }),
+          s0 = createSocketMock(),
           s1 = createSocketMock(),
           s2 = createSocketMock();
 
-      c.addSocket(s1); // no conect fired
-      c.addSocket(s2); // connect fired on s1
+      // Only one peer, no events fired
+      console.log('Add socket s0');
+      c.addSocket(s0);
+      assert.ok(!s0.send.called, 'connect event sent to first peer');
+      s0.send.reset();
 
-      assert.ok(s1.send.called, 'first peer not called');
-      assert.ok(s2.send.notCalled, 'second peer called');
+      // 2 peers, connect should fire on both
+      console.log('Add socket s1');
+      c.addSocket(s1);
+      assert.ok(s0.send.called, 'connect event should fire on existing peer');
+      assert.ok(s1.send.called, 'connect event should fire on new peer');
+      s0.send.reset();
+      s1.send.reset();
+
+      // 3 peers, connect should fire once on existing
+      // twice on new peer (1 for each existing peer)
+      console.log('Add socket s2');
+      c.addSocket(s2);
+      assert.ok(s0.send.calledOnce, 'connect event should fire on existing peer');
+      assert.ok(s1.send.calledOnce, 'connect event should fire on existing peer');
+      assert.ok(s2.send.calledTwice, 'connect event should fire twice on existing peer');
+
     });
     it('validates name');
   });
