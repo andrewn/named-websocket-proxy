@@ -6,7 +6,8 @@ var config = {
   tcp: {
     address: '127.0.0.1',
     port: 9009
-  }
+  },
+  consoleType: 'basic' // 'advanced' or 'basic'
 };
 
 var proxy;
@@ -36,8 +37,14 @@ function stopProxy() {
   proxy = null;
 }
 
+function pathForConsoleType(type) {
+  return config.consoleType === 'basic'
+          ? 'ui/main.html'
+          : 'ui/console.html';
+}
+
 function launchWindow() {
-  chrome.app.window.create('ui/console.html', {
+  chrome.app.window.create(pathForConsoleType(config.consoleType), {
     id: 'main-window',
     bounds: {
       width: 800,
