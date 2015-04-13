@@ -52,7 +52,7 @@ describe('Channel', function () {
       c.removePeer(p);
       assert.equal(c.peers.length, 0);
     });
-    it('fires disconnect event on all connected peers'/*, function () {
+    it('fires disconnect event on all connected peers', function () {
       var s = createSocketMock();
       var c = new Channel({ name: 'my-channel-name' });
       var p;
@@ -61,7 +61,7 @@ describe('Channel', function () {
 
       c.removePeer(p);
       assert.equal(c.peers.length, 0);
-    }*/);
+    });
   });
   describe('.send', function () {
     it('sends messages to all peers');
