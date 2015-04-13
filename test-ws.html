@@ -13,53 +13,57 @@
   <pre id="log"></pre>
   <script type="text/javascript" src="./ui/shim.js"></script>
   <script>
+    function d() {
+      var d = new Date();
+      return [ d.getHours(), d.getMinutes(), d.getSeconds() ].join(':');
+    }
     function log(msg) {
       console.log(arguments);
-      document.querySelector('#log').innerHTML += (new Date()) + ': ' + msg + '\n';
+      document.querySelector('#log').innerHTML += d() + ': ' + msg + '\n';
     }
 
     var channel = new NetworkWebSocket('bbc.nws.test');
 
     channel.onopen = function (evt) {
-      log('Connected', evt);
+      log('👪CHANNEL: Connected', evt);
     }
 
     channel.onmessage = function(evt) {
-      log("Broadcast message: " + evt.data, evt);
+      log("👪CHANNEL: Broadcast message: " + evt.data, evt);
     };
 
     // Stop
     channel.onclose = function(evt) {
-      log("Connection terminated");
+      log("👪CHANNEL: Connection terminated");
     };
 
     channel.onconnect = function(evt) {
       var peer;
       window.peer = peer = evt.detail.target;
-      log("Peer connected: " + peer.id, evt);
+      log("👪CHANNEL: Peer connected: " + peer.id, evt);
       attachWebSocketLifecycleEventsAndSayHello(peer);
     };
 
     channel.ondisconnect = function(evt) {
-      log("Peer disconnected", evt);
+      log("👪CHANNEL: Peer disconnected: " + evt.detail.target.id, evt);
     };
 
     log('Started');
 
     function attachWebSocketLifecycleEventsAndSayHello(peer) {
       peer.onmessage = function (evt) {
-        log("Direct message from peer: " + evt.data, evt);
+        log("🚶PEER: Direct message from peer: " + evt.data, evt);
       }
       peer.onopen = function (evt) {
-        log("Peer connection complete", evt);
-        log("Send hello direct to peer: " + peer.id);
+        log("🚶PEER: Peer connection complete", evt);
+        log("🚶PEER: Send hello direct to peer: " + peer.id);
         peer.send('Hello');
       }
       peer.onclose = function (evt) {
-        log("Peer disconnected", peer.id);
+        log("🚶PEER: Peer disconnected", peer.id);
       }
       peer.onerror = function (evt) {
-        log("Peer error", peer.id);
+        log("🚶PEER: Peer error", peer.id);
       }
     }
   </script>
