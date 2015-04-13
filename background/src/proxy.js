@@ -41,19 +41,21 @@ var Proxy = function (address, port) {
       keepConnectionOpen = true;
     }
 
-    console.log('channelName: ', channelName);
-
     // Associate socket with channel
     var channel = this.channels_.findOrCreate(channelName);
     var peer = channel.addSocket(socket);
+
+    console.log('New peer on channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
+    console.log('Peer has id ', peer.id);
 
     socket.addEventListener('message', function (e) {
       console.log('Message from client', e);
     });
 
     socket.addEventListener('close', function () {
-      console.log('Socket has closed');
+      console.log('Socket has closed, removing peer id: ', peer.id);
       channel.removePeer(peer);
+      console.log('Channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
     });
 
     // socket.send('Hello');
