@@ -48,7 +48,7 @@ function launchWindow() {
     id: 'main-window',
     bounds: {
       width: 800,
-      height: 600,
+      height: 300,
       left: 100,
       top: 100
     },
