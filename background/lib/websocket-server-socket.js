@@ -26,6 +26,15 @@ WebSocketServerSocket.prototype = {
   readData_: function(readInfo) {
     var t = this;
 
+    // readData_() is called on all socket instances due to
+    // Chrome API.
+    // We ignore if:
+    //  - this socket has been closed
+    //  - the data is not for our socket
+    if (this.readyState === 3 || (readInfo.socketId != this.socketId_)) {
+      return;
+    }
+
     if (readInfo.resultCode <= 0) {
       t.close_();
       return;
