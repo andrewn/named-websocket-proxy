@@ -31,6 +31,7 @@ Channel.prototype.addSocket = function (s) {
 
 Channel.prototype.removePeer = function (p) {
   this.peers.remove({ id: p.id });
+  this.peers.forEach(disconnect(p));
   return p;
 }
 
@@ -62,6 +63,17 @@ function connect(sourcePeer, targetPeer) {
         payload: /* payload */ '',
       });
   targetPeer.send(msg);
+}
+
+function disconnect(sourcePeer) {
+  return function (targetPeer) {
+    var msg = JSON.stringify({
+          action:  'disconnect',
+          target:  sourcePeer.id, // peer that has disconnected
+          payload: /* payload */ '',
+        });
+    targetPeer.send(msg);
+  };
 }
 
 module.exports = Channel;

@@ -71,14 +71,22 @@ describe('Channel', function () {
       assert.equal(c.peers.length, 0);
     });
     it('fires disconnect event on all connected peers', function () {
-      var s = createSocketMock();
-      var c = new Channel({ name: 'my-channel-name' });
-      var p;
+      var s0 = createSocketMock(),
+          s1 = createSocketMock(),
+          c = new Channel({ name: 'my-channel-name' }),
+          p0, p1;
 
-      p = c.addSocket(s);
 
-      c.removePeer(p);
-      assert.equal(c.peers.length, 0);
+      p0 = c.addSocket(s0);
+      p1 = c.addSocket(s1);
+
+      s0.send.reset();
+      s1.send.reset();
+
+      // Removing p0 should fire disconnect on p1
+      c.removePeer(p0);
+      assert.ok(!s0.send.called);
+      assert.ok( s1.send.called);
     });
   });
   describe('.broadcast', function () {
