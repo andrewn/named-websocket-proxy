@@ -18,7 +18,7 @@ limitations under the License.
 Author: Renato Mangini (mangini@chromium.org)
 */
 
-const DEFAULT_MAX_CONNECTIONS=5;
+const DEFAULT_MAX_CONNECTIONS=20;
 
 
 // Define some local variables here.
