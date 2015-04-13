@@ -50,7 +50,8 @@ var Proxy = function (address, port) {
 
     socket.addEventListener('message', function (evt) {
       console.log('Message from peer id: ', peer.id);
-      var payload = {};
+
+      var payload = {}, targetPeer;
       try {
         payload = JSON.parse(evt.data);
       } catch (err) {
@@ -60,6 +61,17 @@ var Proxy = function (address, port) {
       if (payload.action === 'broadcast') {
         console.log('Broadcast action: ', payload);
         channel.broadcastFromPeer(payload.data, peer);
+      }
+      else if (payload.action === 'message') {
+        console.log('Direct message action: ', payload);
+        targetPeer = channel.getPeerById(payload.target);
+        if (targetPeer) {
+          targetPeer.send(JSON.stringify({
+            action: 'message',
+            source: peer.id,
+            data: payload.data
+          }));
+        }
       }
     });
 

@@ -104,4 +104,15 @@ describe('Channel', function () {
   describe('.receive', function () {
     it('receives messages from all peers');
   });
+  describe('.getPeerById', function () {
+    it('fetches the peer object by id', function () {
+      var c = new Channel({ name: 'my-channel-name' });
+      var p1, p2;
+
+      p1 = c.addSocket(createSocketMock());
+
+      assert.equal( c.getPeerById(p1.id), p1, 'peer was not found');
+      assert.isNull( c.getPeerById('abcdef-12345-abcdef'), 'non-existent peer was found');
+    });
+  });
 });

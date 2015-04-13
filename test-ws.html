@@ -2,26 +2,66 @@
 <html>
 <head>
   <title>Test Web Socket</title>
+  <style type="text/css">
+    body {
+      font-family: sans-serif;
+      font-size: 1em;
+    }
+  </style>
 </head>
 <body>
+  <pre id="log"></pre>
+  <script type="text/javascript" src="./ui/shim.js"></script>
   <script>
-    var connection = new WebSocket('ws://localhost:9009/my-channel-name');
+    function log(msg) {
+      console.log(arguments);
+      document.querySelector('#log').innerHTML += (new Date()) + ': ' + msg + '\n';
+    }
 
-    // When the connection is open, send some data to the server
-    connection.onopen = function () {
-      console.log('Connected open');
-      connection.send('Ping'); // Send the message 'Ping' to the server
+    var channel = new NetworkWebSocket('bbc.nws.test');
+
+    channel.onopen = function (evt) {
+      log('Connected', evt);
+    }
+
+    channel.onmessage = function(evt) {
+      log("Broadcast message: " + evt.data, evt);
     };
 
-    // Log errors
-    connection.onerror = function (error) {
-      console.log('WebSocket Error ' + error);
+    // Stop
+    channel.onclose = function(evt) {
+      log("Connection terminated");
     };
 
-    // Log messages from the server
-    connection.onmessage = function (e) {
-      console.log('Server: ' + e.data);
+    channel.onconnect = function(evt) {
+      var peer;
+      window.peer = peer = evt.detail.target;
+      log("Peer connected: " + peer.id, evt);
+      attachWebSocketLifecycleEventsAndSayHello(peer);
     };
+
+    channel.ondisconnect = function(evt) {
+      log("Peer disconnected", evt);
+    };
+
+    log('Started');
+
+    function attachWebSocketLifecycleEventsAndSayHello(peer) {
+      peer.onmessage = function (evt) {
+        log("Direct message from peer: " + evt.data, evt);
+      }
+      peer.onopen = function (evt) {
+        log("Peer connection complete", evt);
+        log("Send hello direct to peer: " + peer.id);
+        peer.send('Hello');
+      }
+      peer.onclose = function (evt) {
+        log("Peer disconnected", peer.id);
+      }
+      peer.onerror = function (evt) {
+        log("Peer error", peer.id);
+      }
+    }
   </script>
 </body>
 </html>

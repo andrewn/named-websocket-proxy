@@ -38,6 +38,10 @@ Channel.prototype.broadcastFromPeer = function (msg, peer) {
   this.peers.reject(peer).forEach(broadcastMsgFromPeer(msg, peer));
 }
 
+Channel.prototype.getPeerById = function (id) {
+  return this.peers.get(id) || null;
+};
+
 function broadcastMsgFromPeer(payload, sourcePeer) {
   return function (targetPeer) {
     var msg = JSON.stringify({
