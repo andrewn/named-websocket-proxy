@@ -5,7 +5,7 @@ var EventSource = require('../lib/event-source'),
 var Peer = function (socket, channel) {
   EventSource.apply(this);
   this.id = uuid.v4();
-  this.url = '/' + channel.name + '/' + this.peerId + '/%s';
+  this.url = '/' + channel.name + '/' + this.id + '/%s';
   this.socket = socket;
   this.socket.addEventListener('message', this.handleEvent.bind(this));
 };

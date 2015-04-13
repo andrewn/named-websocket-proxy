@@ -30,6 +30,11 @@ describe('Peer', function () {
       assert.isString(peer.id);
       assert.equal(peer.id.length, UUID_LENGTH);
     });
+    it('should generate a URL', function () {
+      var peer = new Peer(createSocketMock(), createChannelMock());
+
+      assert.equal(peer.url, '/mock-channel/' + peer.id + '/%s');
+    });
     it('should allow messages to be sent', function () {
       var socket = createSocketMock(),
           msg = { a:1, b:2 },
