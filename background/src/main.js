@@ -1,4 +1,4 @@
-var Proxy = require('./proxy');
+var App = require('./app');
 
 console.log('Background page initialised');
 
@@ -10,32 +10,18 @@ var config = {
   consoleType: 'basic' // 'advanced' or 'basic'
 };
 
-var proxy;
+var app = new App();
 
 chrome.app.runtime.onLaunched.addListener(function() {
   console.log('App launched.');
-  startProxy(config.tcp.address, config.tcp.port);
+  app.init();
   launchWindow();
 });
 
 chrome.runtime.onSuspend.addListener(function() {
   console.log('App is being suspended');
-  stopProxy();
+  app.destroy();
 });
-
-function startProxy(address, port, handler) {
-  if (proxy) {
-    console.log('Disconnect proxy');
-    proxy.disconnect();
-  }
-
-  proxy = new Proxy(address, port);
-}
-
-function stopProxy() {
-  proxy.disconnect();
-  proxy = null;
-}
 
 function pathForConsoleType(type) {
   return config.consoleType === 'basic'
