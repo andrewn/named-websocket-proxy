@@ -1,65 +1,135 @@
 module.exports = {
-  ptr: function (params) {
-    var channelName = params.channelName,
-        peerId      = params.peerId;
+  ptr: {
+    encode: function (params) {
+      var channelName = params.channelName,
+          peerId      = params.peerId;
 
-    if (channelName == null || peerId == null) {
-      throw new Error('channelName or peerId not provided');
-    }
-
-    return {
-      type: 'PTR',
-      name: '_ws._tcp.local',
-      data: instanceName(channelName, peerId)
-    }
-  },
-  srv: function (params) {
-    var channelName = params.channelName,
-        peerId      = params.peerId,
-        port        = params.port,
-        hostname    = params.hostname;
-
-    if (channelName == null || peerId == null || port == null ||  hostname == null) {
-      throw new Error('channelName, peerId, port or hostname not provided');
-    }
-
-    return {
-      type: 'SRV',
-      name: instanceName(channelName, peerId),
-      data: {
-        port: port,
-        target: host(hostname)
+      if (channelName == null || peerId == null) {
+        throw new Error('channelName or peerId not provided');
       }
-    };
-  },
-  txt: function (params) {
-    var channelName = params.channelName,
-        peerId      = params.peerId,
-        url         = params.url;
 
-    if (channelName == null || peerId == null || url == null) {
-      throw new Error('channelName, peerId or url not provided');
+      return {
+        type: 'PTR',
+        name: '_ws._tcp.local',
+        data: instanceName(channelName, peerId)
+      }
+    },
+    decode: function (record) {
+      var matcher = /(.*)\[(.*)\]\._ws\._tcp\.local/,
+          matches;
+
+      if (!record && !record.data) {  return null; }
+
+      matches = matcher.exec(record.data);
+      if (matches && matches.length === 3) {
+        return {
+          channelName: matches[1],
+          peerId: matches[2]
+        };
+      } else {
+        return null;
+      }
+    }
+  },
+  srv: {
+    encode: function (params) {
+      var channelName = params.channelName,
+          peerId      = params.peerId,
+          port        = params.port,
+          hostname    = params.hostname;
+
+      if (channelName == null || peerId == null || port == null ||  hostname == null) {
+        throw new Error('channelName, peerId, port or hostname not provided');
+      }
+
+      return {
+        type: 'SRV',
+        name: instanceName(channelName, peerId),
+        data: {
+          port: port,
+          target: host(hostname)
+        }
+      };
+    },
+    decode: function (record) {
+      if (record && record.data && record.data.port) {
+        return {
+          port: record.data.port
+        }
+      } else {
+        return null;
+      }
+    }
+  },
+  txt: {
+    encode: function (params) {
+      var channelName = params.channelName,
+          peerId      = params.peerId,
+          url         = params.url;
+
+      if (channelName == null || peerId == null || url == null) {
+        throw new Error('channelName, peerId or url not provided');
+      }
+
+      return {
+        type: 'TXT',
+        name: instanceName(channelName, peerId),
+        data: "path=" + url
+      };
+    },
+    decode: function (record) {
+      if (record && record.data) {
+        return {
+          url: record.data.replace('path=', '')
+        };
+      } else {
+        return null;
+      }
+    }
+  },
+  a: {
+    encode: function (params) {
+      var hostname = params.hostname,
+          ip = params.ip;
+
+      if (hostname == null || ip == null) {
+        throw new Error('channelName or ip not provided');
+      }
+
+      return {
+        type: 'A',
+        name: host(hostname),
+        data: ip
+      };
+    },
+    decode: function (record) {
+      if (record && record.data) {
+        return {
+          ip: record.data
+        };
+      } else {
+        return null;
+      }
+    }
+  },
+  parse: function (ptr, srv, txt, a) {
+    var r = module.exports,
+        peerId, channelName, url, ip, port;
+
+    if (ptr == null || srv == null || txt == null || a == null) {
+      return null;
     }
 
-    return {
-      type: 'TXT',
-      name: instanceName(channelName, peerId),
-      data: "path=" + url
-    };
+    return _.merge(
+      {},
+      r.ptr.decode(ptr),
+      r.srv.decode(srv),
+      r.srv.decode(txt),
+      r.a.decode(a)
+    );
   },
-  a: function (params) {
-    var hostname = params.hostname,
-        ip = params.ip;
-
-    if (hostname == null || ip == null) {
-      throw new Error('channelName or ip not provided');
-    }
-
-    return {
-      type: 'A',
-      name: host(hostname),
-      data: ip
-    };
+  isValid: function (data) {
+    return Object.keys(data).length === 4;
   }
 }
 
@@ -70,5 +140,5 @@ function instanceName(channelName, peerId) {
 }
 
 function host(name) {
-  return name + '.local.';
+  return name + '.local';
 }

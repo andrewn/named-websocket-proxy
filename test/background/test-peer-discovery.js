@@ -5,16 +5,18 @@ var assert = helpers.assert,
     createSocketMock = helpers.createSocketMock,
     createChannelMock = helpers.createChannelMock;
 
-
 var PeerDiscovery = require('../../background/src/peer-discovery'),
+    EventEmitter = require('events').EventEmitter,
     Peer = require('../../background/src/peer'),
     createMdnsMock;
+
+var newPeerMdnsData = require('../fixtures/peer-new.json');
 
 createMdnsMock = function () {
   var constructor = function (opts) {
     opts = opts || {};
 
-    var instance = spy();
+    var instance = new EventEmitter();
     instance.port = opts.port;
     instance.respond = spy();
     instance.response = instance.respond;
@@ -39,7 +41,7 @@ describe('PeerDiscovery', function () {
       assert.equal(mdns.instance.port, 1234);
     });
   });
-  describe('advertise', function () {
+  describe('.advertisePeer()', function () {
     it('should construct Named WebSocket DNS-SD records for Peer', function () {
       var mdns = createMdnsMock(),
           c = createChannelMock(),
@@ -50,5 +52,20 @@ describe('PeerDiscovery', function () {
 
       assert.ok(mdns.instance.response.called);
     });
+  });
+  describe('.on peer:discover', function () {
+    it('should parse incoming DNS-SD responses into Peer', function (done) {
+      mdns = createMdnsMock();
+      pd = new PeerDiscovery('my-computer', '123.123.1.1', 5678, { mdns: mdns });
+
+      pd.on('peer:discover', function (data) {
+        assert.equal(data.peerId, 'b2c5b427-823a-4161-978e-ba3830a7d556');
+        assert.equal(data.channelName, 'bbc.nws.test');
+
+        done();
+      });
+
+      mdns.instance.emit('response', newPeerMdnsData);
+    })
   });
 });
