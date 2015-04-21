@@ -2,9 +2,9 @@ var EventSource = require('../lib/event-source'),
     uuid = require('node-uuid');
     _ = require('lodash');
 
-var Peer = function (socket, channel) {
+var Peer = function (socket, channel, id) {
   EventSource.apply(this);
-  this.id = uuid.v4();
+  this.id = id || uuid.v4();
   this.url = '/' + channel.name + '/' + this.id + '/%s';
   this.channelName = channel.name;
   this.socket = socket;

@@ -35,6 +35,7 @@ var Proxy = function (address, port) {
   });
 
   this.peerDiscovery_.on('peer:discover', function (data) {
+    console.log('peer:discover', data);
     var channel = this.channels_.findOrCreate(data.channelName);
     var existingPeer = channel.getPeerById(data.peerId);
     var url, socket, proxyConnection, peer;
@@ -55,7 +56,7 @@ var Proxy = function (address, port) {
       }
 
       console.log('Create new peer using this connection', proxyConnection);
-      peer = new Peer(channel, proxyConnection.socketForPeer(data.peerId), data.peerId);
+      peer = new Peer(proxyConnection.socketForPeer(data.peerId), channel, data.peerId);
     }
   }.bind(this));
 

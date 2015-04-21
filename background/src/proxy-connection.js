@@ -10,6 +10,7 @@ var ProxyConnection = AmpersandState.extend({
     socket: 'object'
   },
   initialize: function () {
+    console.log('ProxyConnection.initialize', this.socket);
     this.socket.addEventListener('message', function () {
       console.log('ProxyConnection.message', this.ip);
     }.bind(this));
@@ -22,8 +23,11 @@ var ProxyConnection = AmpersandState.extend({
 */
 ProxyConnection.prototype.socketForPeer = function (id) {
   return {
-    send: function () {
-      console.log('ProxyConnection.ShimSocket', id);
+    send: function (msg) {
+      console.log('ProxyConnection - shimSocket.send', id, msg);
+    },
+    addEventListener: function (eventName) {
+      console.log('ProxyConnection - shimSocket.listen', eventName);
     }
   };
 }
