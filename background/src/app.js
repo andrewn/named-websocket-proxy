@@ -16,18 +16,30 @@ App.prototype.init = function () {
   }
 
   // Create shared channels object, representing Channels
-  // and Peers on the network
+  // and Peers on the network, either local or remote
   this.channels = new Channels();
+
+  // Create a discovery client for discovering other proxies on
+  // the local network
+  this.peerDiscovery = new PeerDiscovery('andrewn', '192.168.0.4', 9009);
 
   // Connect to the local interface on a specific port
   this.localProxy = new Proxy('127.0.0.1', 9009, this.channels, require('./debug')('LocalProxy'));
+  this.localProxy.on('peer:add', function (p) {
+    debug.log('LocalProxy: New peer added', p);
+    this.peerDiscovery.advertisePeer(p);
+  }.bind(this));
 
   // Connect to the remote interface on any available port
   this.remoteProxy = new Proxy('192.168.0.4', 0, this.channels, require('./debug')('RemoteProxy'));
 
-  // Create a discovery client for discovering other proxies on
-  // the local network
-  // this.peerDiscovery = new PeerDiscovery('andrewn', '192.168.0.4', 9009);
+  this.peerDiscovery.on('peer:discover', function (data) {
+    debug.log('A remote peer has been discovered', data);
+
+    // Existing WS connection?
+    //   Y: create new shim
+    //   N: create connection
+  });
 
   /*
   this.channels_.on('add', function (channel) {

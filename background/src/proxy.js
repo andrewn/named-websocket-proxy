@@ -47,9 +47,6 @@ var Proxy = function (address, port, channels, debug) {
     var channel = this.channels_.findOrCreate(channelName);
     var peer = channel.addSocket(socket);
 
-    debug.log('New peer on channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
-    debug.log('Peer has id ', peer.id);
-
     socket.addEventListener('message', function (evt) {
       debug.log('Message from peer id: ', peer.id);
 
@@ -79,7 +76,10 @@ var Proxy = function (address, port, channels, debug) {
       debug.log('Channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
     });
 
-    // socket.send('Hello');
+    debug.log('New peer on channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
+    debug.log('Peer has id ', peer.id);
+
+    this.emit('peer:add', peer);
 
     return keepConnectionOpen;
   }.bind(this));
