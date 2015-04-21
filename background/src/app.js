@@ -1,5 +1,6 @@
 var debug = require('./debug')('App'),
     Proxy = require('./proxy'),
+    Channels = require('./channels'),
     PeerDiscovery = require('./peer-discovery');
 
 var App = function () {
@@ -14,11 +15,15 @@ App.prototype.init = function () {
     return;
   }
 
+  // Create shared channels object, representing Channels
+  // and Peers on the network
+  this.channels = new Channels();
+
   // Connect to the local interface on a specific port
-  this.localProxy = new Proxy('127.0.0.1', 9009);
+  this.localProxy = new Proxy('127.0.0.1', 9009, this.channels);
 
   // Connect to the remote interface on any available port
-  // this.remoteProxy = new Proxy('', 0);
+  // this.remoteProxy = new Proxy('', 0, this.channels);
 
   // Create a discovery client for discovering other proxies on
   // the local network

@@ -1,20 +1,18 @@
 var HttpServer = require('../lib/http-server'),
     WebSocketServer = require('../lib/websocket-server'),
-    EventSource = require('../lib/event-source');
+    EventEmitter = require('events').EventEmitter;
 
-var Channels = require('./channels'),
-    ProxyConnections = require('./proxy-connections'),
+var ProxyConnections = require('./proxy-connections'),
     Peer = require('./peer'),
     protocol = require('./shim-protocol');
 
-var Proxy = function (address, port) {
-  EventSource.apply(this);
+var Proxy = function (address, port, channels) {
 
   this.httpServer_ = new HttpServer();
   this.wsServer_ = new WebSocketServer(this.httpServer_);
   this.httpServer_.listen(port, address);
 
-  this.channels_ = new Channels();
+  this.channels_ = channels;
   // this.proxyConnections_ = new ProxyConnections();
 
   this.httpServer_.addEventListener('request', function (req) {
@@ -86,11 +84,10 @@ var Proxy = function (address, port) {
   }.bind(this));
 };
 
-Proxy.prototype = {
-  __proto__: EventSource.prototype,
-  disconnect: function () {
-    this.httpServer_.disconnect();
-  }
+Proxy.prototype = new EventEmitter();
+
+Proxy.prototype.disconnect = function () {
+  this.httpServer_.disconnect();
 }
 
 module.exports = Proxy;
