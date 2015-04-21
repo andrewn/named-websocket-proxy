@@ -1,6 +1,7 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-var stringToArrayBuffer = require('./buffer-utils').stringToArrayBuffer;
+var stringToArrayBuffer = require('./buffer-utils').stringToArrayBuffer,
+    debug = require('../src/debug')('HttpRequest');
 
 // Http response code strings.
 var responseMap = {
@@ -142,7 +143,7 @@ HttpRequest.prototype = {
         var extension = url.substr(url.indexOf('.') + 1);
         type = extensionTypes[extension] || type;
       }
-      console.log('Served ' + url);
+      debug.log('Served ' + url);
       var contentLength = this.getResponseHeader('Content-Length');
       if (xhr.status == 200)
         contentLength = (this.response && this.response.byteLength) || 0;

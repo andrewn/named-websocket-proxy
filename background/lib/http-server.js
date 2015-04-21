@@ -1,6 +1,7 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-var EventSource = require('./event-source'),
+var debug  = require('../src/debug')('HttpServer'),
+    EventSource = require('./event-source'),
     TcpServer   = require('./tcp-server').TcpServer,
     HttpRequest = require('./http-request'),
     arrayBufferToString = require('./buffer-utils').arrayBufferToString;
@@ -38,7 +39,7 @@ HttpServer.prototype = {
     // every time a new socket is connected
     t.tcp = new TcpServer(opt_host || '0.0.0.0', port);
     t.tcp.listen(function (tcpConnection, info) {
-      console.log('Connection', arguments);
+      debug.log('Connection', arguments);
       t.onConnection_(tcpConnection, info);
     });
     t.readyState_ = 1;
@@ -68,7 +69,7 @@ HttpServer.prototype = {
   },
 */
   onConnection_: function(acceptInfo, info) {
-    console.log('onConnection_(acceptInfo %o, info %o)', acceptInfo, info);
+    debug.log('onConnection_(acceptInfo %o, info %o)', acceptInfo, info);
     chrome.sockets.tcp.setPaused(acceptInfo.socketId, false /* paused */);
     // this.readRequestFromSocket_(acceptInfo.socketId, info);
   },
@@ -95,17 +96,17 @@ HttpServer.prototype = {
     isEnded = cached.endIndex > -1;
 
     if (!isEnded) {
-      console.log('Not end of request', socketId);
+      debug.log('Not end of request', socketId);
       cached.endIndex = cached.data.length - 1;
     } else {
-      console.log('Found end of request', socketId);
+      debug.log('Found end of request', socketId);
       this.createHttpRequest_(socketId, cached);
       this.incoming[socketId] = null;
     }
   },
 
   createHttpRequest_: function (socketId, info) {
-    console.log('createHttpRequest_', info);
+    debug.log('createHttpRequest_', info);
 
     var headers = info.data.substring(0, info.endIndex).split('\n'),
         headerMap = {},
@@ -128,10 +129,10 @@ HttpServer.prototype = {
   },
 
   readRequestFromSocket_: function(socketId, peerInfo) {
-    console.log('readRequestFromSocket_(socketId %o, peerInfo %o)', socketId, peerInfo);
+    debug.log('readRequestFromSocket_(socketId %o, peerInfo %o)', socketId, peerInfo);
 
     // chrome.sockets.tcp.onReceive.addListener(function (info) {
-    //   console.log('onReceive', arrayBufferToString(info.data));
+    //   debug.log('onReceive', arrayBufferToString(info.data));
     // });
 
     // chrome.sockets.tcp.setPaused(socketId, false /* paused */);
@@ -180,7 +181,7 @@ HttpServer.prototype = {
     if (!this.dispatchEvent(type, request)){
       request.close();
     } else if (keepAlive){
-      console.log('keepAlive requested by not implemented');
+      debug.log('keepAlive requested by not implemented');
       //this.readRequestFromSocket_(request.socketId_);
     }
   },

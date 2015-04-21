@@ -1,6 +1,7 @@
 // https://github.com/GoogleChrome/chrome-app-samples/tree/master/samples/websocket-server
 
-var EventSource = require('./event-source'),
+var debug = require('../src/debug')('WebSockerServerSocket'),
+    EventSource = require('./event-source'),
     arrayBufferToString = require('./buffer-utils').arrayBufferToString;
 
 /**
@@ -40,7 +41,7 @@ WebSocketServerSocket.prototype = {
       return;
     }
     if (!readInfo.data.byteLength) {
-      console.warn('!readInfo.data.byteLength - needs to read more data');
+      debug.warn('!readInfo.data.byteLength - needs to read more data');
       return;
     }
 
@@ -128,7 +129,7 @@ WebSocketServerSocket.prototype = {
   },
 
   readFromSocket_: function() {
-    console.log('readFromSocket_');
+    debug.log('readFromSocket_');
 
     // Create a single callback for incoming socket data and errors
     chrome.sockets.tcp.onReceive.addListener(this.readData_.bind(this));

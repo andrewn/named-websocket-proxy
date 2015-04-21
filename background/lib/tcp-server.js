@@ -1,5 +1,5 @@
 // https://github.com/GoogleChrome/chrome-app-samples/blob/master/samples/tcpserver/
-
+var debug = require('../src/debug')('TcpServer');
 /*
 Copyright 2012 Google Inc.
 
@@ -104,7 +104,7 @@ TcpServer.prototype.disconnect = function() {
     try {
       this.openSockets[i].close();
     } catch (ex) {
-      console.log(ex);
+      debug.log(ex);
     }
   }
   this.openSockets=[];
@@ -374,7 +374,7 @@ function _stringToArrayBuffer(str, callback) {
  * Wrapper function for logging
  */
 function log(msg) {
-  console.log(msg);
+  debug.log(msg);
 }
 
 /**

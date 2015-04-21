@@ -23,7 +23,7 @@ App.prototype.init = function () {
   this.localProxy = new Proxy('127.0.0.1', 9009, this.channels);
 
   // Connect to the remote interface on any available port
-  // this.remoteProxy = new Proxy('', 0, this.channels);
+  // this.remoteProxy = new Proxy('192.168.0.4', 0, this.channels);
 
   // Create a discovery client for discovering other proxies on
   // the local network

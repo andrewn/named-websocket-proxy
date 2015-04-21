@@ -1,4 +1,5 @@
-var App = require('./app');
+var debug = require('./debug')('main'),
+    App = require('./app');
 
 console.log('Background page initialised');
 
@@ -13,13 +14,13 @@ var config = {
 var app = new App();
 
 chrome.app.runtime.onLaunched.addListener(function() {
-  console.log('App launched.');
+  debug.log('App launched.');
   app.init();
   launchWindow();
 });
 
 chrome.runtime.onSuspend.addListener(function() {
-  console.log('App is being suspended');
+  debug.log('App is being suspended');
   app.destroy();
 });
 

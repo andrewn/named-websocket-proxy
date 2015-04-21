@@ -1,4 +1,5 @@
-var HttpServer = require('../lib/http-server'),
+var debug = require('./debug')('Proxy'),
+    HttpServer = require('../lib/http-server'),
     WebSocketServer = require('../lib/websocket-server'),
     EventEmitter = require('events').EventEmitter;
 
@@ -16,7 +17,7 @@ var Proxy = function (address, port, channels) {
   // this.proxyConnections_ = new ProxyConnections();
 
   this.httpServer_.addEventListener('request', function (req) {
-    console.log('An HTTP request!', req);
+    debug.log('An HTTP request!', req);
     req.writeHead(404, {});
     req.end();
 
@@ -26,7 +27,7 @@ var Proxy = function (address, port, channels) {
   });
 
   this.wsServer_.addEventListener('request', function (req) {
-    console.log('WebSocket request', req);
+    debug.log('WebSocket request', req);
     var keepConnectionOpen, channelName, socket;
 
     if ('url' in req.headers) {
@@ -46,11 +47,11 @@ var Proxy = function (address, port, channels) {
     var channel = this.channels_.findOrCreate(channelName);
     var peer = channel.addSocket(socket);
 
-    console.log('New peer on channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
-    console.log('Peer has id ', peer.id);
+    debug.log('New peer on channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
+    debug.log('Peer has id ', peer.id);
 
     socket.addEventListener('message', function (evt) {
-      console.log('Message from peer id: ', peer.id);
+      debug.log('Message from peer id: ', peer.id);
 
       var payload = {}, targetPeer;
       try {
@@ -60,11 +61,11 @@ var Proxy = function (address, port, channels) {
       }
 
       if (payload.action === 'broadcast') {
-        console.log('Broadcast action: ', payload);
+        debug.log('Broadcast action: ', payload);
         channel.broadcastFromPeer(payload.data, peer);
       }
       else if (payload.action === 'message') {
-        console.log('Direct message action: ', payload);
+        debug.log('Direct message action: ', payload);
         targetPeer = channel.getPeerById(payload.target);
         if (targetPeer) {
           targetPeer.send( protocol.message(peer, payload.data) );
@@ -73,9 +74,9 @@ var Proxy = function (address, port, channels) {
     });
 
     socket.addEventListener('close', function () {
-      console.log('Socket has closed, removing peer id: ', peer.id);
+      debug.log('Socket has closed, removing peer id: ', peer.id);
       channel.removePeer(peer);
-      console.log('Channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
+      debug.log('Channel ', channel.name, ' has ', channel.peers.length, ' connected peers');
     });
 
     // socket.send('Hello');
