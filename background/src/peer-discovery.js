@@ -55,9 +55,8 @@ PeerDiscovery.prototype.handleResponse = function (dns) {
   a   = _.find(dns.answers, { type: 'A' });
 
   data = record.parse(ptr, srv, txt, a);
-console.log('data', data);
+
   if ( record.isValid(data)  ) {
-console.log('firing!', data)
     this.emit('peer:discover', data);
   } else {
     console.warn('Advertising packet did not contain a whole peer advert', data);

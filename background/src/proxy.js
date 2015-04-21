@@ -4,6 +4,7 @@ var HttpServer = require('../lib/http-server'),
 
 var Channels = require('./channels'),
     PeerDiscovery = require('./peer-discovery'),
+    ProxyConnections = require('./proxy-connections'),
     Peer = require('./peer'),
     protocol = require('./shim-protocol');
 
@@ -15,6 +16,7 @@ var Proxy = function (address, port) {
   this.httpServer_.listen(port, address);
 
   this.channels_ = new Channels();
+  this.proxyConnections_ = new ProxyConnections();
   this.peerDiscovery_ = new PeerDiscovery('andrewn', '192.168.0.4', 9009);
   var self = this;
 
@@ -30,7 +32,32 @@ var Proxy = function (address, port) {
     channel.on('peer:change', function (peer) {
       console.log('Peer changed', peer);
     });
-  })
+  });
+
+  this.peerDiscovery_.on('peer:discover', function (data) {
+    var channel = this.channels_.findOrCreate(data.channelName);
+    var existingPeer = channel.getPeerById(data.peerId);
+    var url, socket, proxyConnection, peer;
+    console.log('New remote peer discovered for channelName: ', data.channelName);
+    console.log('New remote peer exists? ', existingPeer);
+    if (existingPeer) {
+      // ignore?
+    } else {
+      // see if connection to remote proxy already exists
+      proxyConnection = this.proxyConnections_.get(data.ip);
+
+      if (!proxyConnection) {
+        console.log('No existing proxyConnection to remore peer exists:', data.ip);
+        url = 'ws://' + data.ip + ':' + data.port + '/remote-proxy-connection-channel';
+        console.log('new connection between remotes', url);
+        socket = new WebSocket(url);
+        proxyConnection = this.proxyConnections_.add({ ip: data.ip, socket: socket });
+      }
+
+      console.log('Create new peer using this connection', proxyConnection);
+      peer = new Peer(channel, proxyConnection.socketForPeer(data.peerId), data.peerId);
+    }
+  }.bind(this));
 
   this.httpServer_.addEventListener('request', function (req) {
     console.log('An HTTP request!', req);
