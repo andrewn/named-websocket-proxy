@@ -1,5 +1,6 @@
 var debug = require('./debug')('App'),
     Proxy = require('./proxy'),
+    RemoteProxy = require('./remotre-proxy'),
     Channels = require('./channels'),
     PeerDiscovery = require('./peer-discovery');
 
@@ -9,6 +10,9 @@ var App = function () {
 
 App.prototype.init = function () {
   debug.info('init');
+
+  this.ip = '192.168.0.7';
+  this.port = 9009;
 
   if (this.initialized) {
     debug.warn('Already initialized');
@@ -21,17 +25,17 @@ App.prototype.init = function () {
 
   // Create a discovery client for discovering other proxies on
   // the local network
-  this.peerDiscovery = new PeerDiscovery('andrewn', '192.168.0.4', 9009);
+  this.peerDiscovery = new PeerDiscovery('andrewn', this.ip, this.port);
 
   // Connect to the local interface on a specific port
-  this.localProxy = new Proxy('127.0.0.1', 9009, this.channels, require('./debug')('LocalProxy'));
+  this.localProxy = new Proxy('127.0.0.1', this.port, this.channels, require('./debug')('LocalProxy'));
   this.localProxy.on('peer:add', function (p) {
     debug.log('LocalProxy: New peer added', p);
     this.peerDiscovery.advertisePeer(p);
   }.bind(this));
 
   // Connect to the remote interface on any available port
-  this.remoteProxy = new Proxy('192.168.0.4', 0, this.channels, require('./debug')('RemoteProxy'));
+  this.remoteProxy = new RemoteProxy(this.ip, 0, this.channels, require('./debug')('RemoteProxy'));
 
   this.peerDiscovery.on('peer:discover', function (data) {
     debug.log('A remote peer has been discovered', data);
