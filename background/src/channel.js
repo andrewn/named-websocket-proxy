@@ -19,8 +19,8 @@ var Channel = function (params) {
 
 assign(Channel.prototype, Events);
 
-Channel.prototype.addSocket = function (s) {
-  var p = new Peer(s, this),
+Channel.prototype.addSocket = function (s, /* optional */ id) {
+  var p = new Peer(s, this, id),
       connectSourceToTarget = _.curry(connect)(p),
       connectTargetToSource = _.curryRight(connect)(p);
 

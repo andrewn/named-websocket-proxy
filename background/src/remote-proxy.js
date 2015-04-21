@@ -1,4 +1,4 @@
-var debug = require('./debug')('Proxy'),
+var debug = require('./debug')('RemoteProxy'),
     HttpServer = require('../lib/http-server'),
     WebSocketServer = require('../lib/websocket-server'),
     EventEmitter = require('events').EventEmitter;
@@ -14,7 +14,7 @@ var Proxy = function (address, port, channels, debug) {
   this.httpServer_.listen(port, address);
 
   this.channels_ = channels;
-  // this.proxyConnections_ = new ProxyConnections();
+  this.proxyConnections_ = new ProxyConnections();
 
   this.httpServer_.addEventListener('request', function (req) {
     debug.log('An HTTP request!', req);
@@ -88,6 +88,36 @@ var Proxy = function (address, port, channels, debug) {
 };
 
 Proxy.prototype = new EventEmitter();
+
+Proxy.prototype.createProxyConnection = function (data) {
+  // Existing WS connection?
+  var channel = this.channels_.findOrCreate(data.channelName),
+      existingPeer = channel.getPeerById(data.peerId),
+      proxyConnection = this.proxyConnections_.get(data.ip),
+      url,
+      socket,
+      peerSocket;
+
+  if (existingPeer) {
+    debug.log('peer already known, assume connection - nothing to do');
+    return;
+  }
+
+  if (!proxyConnection) {
+    debug.log('proxyConnection does not exist');
+    url = 'ws://' + data.ip + ':' + data.port + '/remote';
+    debug.log('new connection between remote proxies', url);
+    socket = new WebSocket(url);
+    proxyConnection = this.proxyConnections_.add({ ip: data.ip, socket: socket });
+  } else {
+    debug.log('proxyConnection already exists');
+  }
+
+  debug.log('Creating new Peer id: ', data.peerId);
+  debug.log('Adding to channel name: ', data.channel);
+  peerSocket = proxyConnection.socketForPeer(data.peerId);
+  channel.addSocket(peerSocket, data.peerId);
+};
 
 Proxy.prototype.disconnect = function () {
   this.httpServer_.disconnect();

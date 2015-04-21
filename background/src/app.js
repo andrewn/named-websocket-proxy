@@ -39,11 +39,8 @@ App.prototype.init = function () {
 
   this.peerDiscovery.on('peer:discover', function (data) {
     debug.log('A remote peer has been discovered', data);
-
-    // Existing WS connection?
-    //   Y: create new shim
-    //   N: create connection
-  });
+    this.remoteProxy.createProxyConnection(data);
+  }.bind(this));
 
   /*
   this.channels_.on('add', function (channel) {
