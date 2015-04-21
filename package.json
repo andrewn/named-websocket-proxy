@@ -29,6 +29,7 @@
     "ampersand-collection": "~1.4.5",
     "sinon": "~1.14.1",
     "lodash": "~3.6.0",
-    "node-uuid": "~1.4.3"
+    "node-uuid": "~1.4.3",
+    "multicast-mdns": "andrewn/multicast-dns#chrome-app"
   }
 }

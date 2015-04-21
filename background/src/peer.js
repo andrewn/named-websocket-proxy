@@ -6,6 +6,7 @@ var Peer = function (socket, channel) {
   EventSource.apply(this);
   this.id = uuid.v4();
   this.url = '/' + channel.name + '/' + this.id + '/%s';
+  this.channelName = channel.name;
   this.socket = socket;
   this.socket.addEventListener('message', this.handleEvent.bind(this));
 };
