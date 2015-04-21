@@ -11,7 +11,8 @@ var debug  = require('../src/debug')('HttpServer'),
  * supports GET requests and upgrading to other protocols (i.e. WebSockets).
  * @constructor
  */
-function HttpServer() {
+function HttpServer(injectDebug) {
+  this.debug = injectDebug || debug;
   EventSource.apply(this);
   this.readyState_ = 0;
   this.tcp = null;
@@ -35,80 +36,33 @@ HttpServer.prototype = {
       t.tcp.disconnect();
     }
 
+    t.debug.log('Port: ', port, 'host: ', opt_host);
+
     // The serve listens on a port and runs a callback
     // every time a new socket is connected
-    t.tcp = new TcpServer(opt_host || '0.0.0.0', port);
+    t.tcp = new TcpServer(opt_host || '0.0.0.0', port, { debug: this.debug });
     t.tcp.listen(function (tcpConnection, info) {
-      debug.log('Connection', arguments);
+      debug.log('Connection. tcpConnection: ', tcpConnection, 'info: ', info);
       t.onConnection_(tcpConnection, info);
     });
     t.readyState_ = 1;
-
-    // Create a single callback for incoming socket data
-    chrome.sockets.tcp.onReceive.addListener(this.handleIncomingData_.bind(t));
-
-    // socket.create('tcp', {}, function(socketInfo) {
-    //   t.socketInfo_ = socketInfo;
-    //   socket.listen(t.socketInfo_.socketId, opt_host || '0.0.0.0', port, 50,
-    //                 function(result) {
-    //     t.readyState_ = 1;
-    //     t.acceptConnection_(t.socketInfo_.socketId);
-    //   });
-    // });
   },
   disconnect: function () {
     this.tcp.disconnect();
   },
-/*
-  acceptConnection_: function(socketId) {
-    var t = this;
-    socket.accept(this.socketInfo_.socketId, function(acceptInfo) {
-      t.onConnection_(acceptInfo);
-      t.acceptConnection_(socketId);
-    });
-  },
-*/
-  onConnection_: function(acceptInfo, info) {
-    debug.log('onConnection_(acceptInfo %o, info %o)', acceptInfo, info);
-    chrome.sockets.tcp.setPaused(acceptInfo.socketId, false /* paused */);
-    // this.readRequestFromSocket_(acceptInfo.socketId, info);
+  onConnection_: function(tcpConnection, info) {
+    this.debug.log('onConnection_');
+    tcpConnection.once('receive', function (data) {
+      this.createHttpRequest_(tcpConnection.socketId, data);
+      tcpConnection.revoke();
+    }.bind(this));
+    tcpConnection.startListening();
   },
 
-  handleIncomingData_: function (info) {
-    var socketId = info.socketId,
-        chunk = info.data,
-        cached = { data: '', endIndex: 0 },
-        isEnded;
+  createHttpRequest_: function (socketId, data/*socketId, info*/) {
+    this.debug.log('createHttpRequest_', socketId, data);
 
-    if (!this.incoming[socketId]) {
-      // New connection
-      this.incoming[socketId] = cached;
-    } else {
-      // Fetch existing data
-      cached = this.incoming[socketId];
-    }
-
-    // Append data
-    cached.data += arrayBufferToString(chunk).replace(/\r\n/g, '\n');
-
-    cached.endIndex = cached.data.indexOf('\n\n', cached.endIndex);
-
-    isEnded = cached.endIndex > -1;
-
-    if (!isEnded) {
-      debug.log('Not end of request', socketId);
-      cached.endIndex = cached.data.length - 1;
-    } else {
-      debug.log('Found end of request', socketId);
-      this.createHttpRequest_(socketId, cached);
-      this.incoming[socketId] = null;
-    }
-  },
-
-  createHttpRequest_: function (socketId, info) {
-    debug.log('createHttpRequest_', info);
-
-    var headers = info.data.substring(0, info.endIndex).split('\n'),
+    var headers = data.substring(0).split('\n'),
         headerMap = {},
         // headers[0] should be the Request-Line
         requestLine = headers[0].split(' '),
@@ -128,61 +82,14 @@ HttpServer.prototype = {
     this.onRequest_(request);
   },
 
-  readRequestFromSocket_: function(socketId, peerInfo) {
-    debug.log('readRequestFromSocket_(socketId %o, peerInfo %o)', socketId, peerInfo);
-
-    // chrome.sockets.tcp.onReceive.addListener(function (info) {
-    //   debug.log('onReceive', arrayBufferToString(info.data));
-    // });
-
-    // chrome.sockets.tcp.setPaused(socketId, false /* paused */);
-  /*
-    var t = this;
-    var requestData = '';
-    var endIndex = 0;
-    var onDataRead = function(readInfo) {
-      // Check if connection closed.
-      if (readInfo.resultCode <= 0) {
-        socket.disconnect(socketId);
-        socket.destroy(socketId);
-        return;
-      }
-      requestData += arrayBufferToString(readInfo.data).replace(/\r\n/g, '\n');
-      // Check for end of request.
-      endIndex = requestData.indexOf('\n\n', endIndex);
-      if (endIndex == -1) {
-        endIndex = requestData.length - 1;
-        socket.read(socketId, onDataRead);
-        return;
-      }
-
-      var headers = requestData.substring(0, endIndex).split('\n');
-      var headerMap = {};
-      // headers[0] should be the Request-Line
-      var requestLine = headers[0].split(' ');
-      headerMap['method'] = requestLine[0];
-      headerMap['url'] = requestLine[1];
-      headerMap['Http-Version'] = requestLine[2];
-      for (var i = 1; i < headers.length; i++) {
-        requestLine = headers[i].split(':', 2);
-        if (requestLine.length == 2)
-          headerMap[requestLine[0]] = requestLine[1].trim();
-      }
-      var request = new HttpRequest(headerMap, socketId);
-      t.onRequest_(request);
-    }
-    socket.read(socketId, onDataRead);
-    */
-  },
-
   onRequest_: function(request) {
     var type = request.headers['Upgrade'] ? 'upgrade' : 'request';
     var keepAlive = request.headers['Connection'] == 'keep-alive';
     if (!this.dispatchEvent(type, request)){
+      this.debug.log('onRequest listener complete, will close');
       request.close();
     } else if (keepAlive){
-      debug.log('keepAlive requested by not implemented');
-      //this.readRequestFromSocket_(request.socketId_);
+      this.debug.log('keepAlive requested by not implemented');
     }
   },
 

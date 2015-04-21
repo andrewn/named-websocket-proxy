@@ -68,6 +68,7 @@ WebSocketRequest.prototype = {
    * Rejects the WebSocket request, closing the connection.
    */
   reject: function() {
+    console.log('Reject WebSocket request - will close');
     this.close();
   }
 }

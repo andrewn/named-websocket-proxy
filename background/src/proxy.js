@@ -7,9 +7,9 @@ var ProxyConnections = require('./proxy-connections'),
     Peer = require('./peer'),
     protocol = require('./shim-protocol');
 
-var Proxy = function (address, port, channels) {
+var Proxy = function (address, port, channels, debug) {
 
-  this.httpServer_ = new HttpServer();
+  this.httpServer_ = new HttpServer(debug);
   this.wsServer_ = new WebSocketServer(this.httpServer_);
   this.httpServer_.listen(port, address);
 

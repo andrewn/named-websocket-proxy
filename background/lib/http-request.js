@@ -158,6 +158,9 @@ HttpRequest.prototype = {
   },
 
   write_: function(array) {
+    if (this.readyState === 3) {
+      debug.warn('Tried to write to closed HttpRequest with data: ', array);
+    }
     var t = this;
     this.bytesRemaining += array.byteLength;
     chrome.sockets.tcp.send(this.socketId_, array, function(writeInfo) {
@@ -173,6 +176,7 @@ HttpRequest.prototype = {
   checkFinished_: function() {
     if (!this.finished_ || this.bytesRemaining > 0)
       return;
+    this.debug.log('HttpRequest.checkFinished_ is true, will close');
     this.close();
   }
 };

@@ -1,5 +1,6 @@
 // https://github.com/GoogleChrome/chrome-app-samples/blob/master/samples/tcpserver/
-var debug = require('../src/debug')('TcpServer');
+var debug = require('../src/debug')('TcpServer'),
+    EventEmitter = require('events').EventEmitter;
 /*
 Copyright 2012 Google Inc.
 
@@ -31,6 +32,8 @@ var socket = chrome.sockets.tcpServer;
  * @param {Number} port The port to connect to at the remote host
  */
 function TcpServer(addr, port, options) {
+  opions = options || {};
+  this.debug = options.debug || debug;
   this.addr = addr;
   this.port = port;
   this.maxConnections = typeof(options) != 'undefined'
@@ -54,7 +57,7 @@ function TcpServer(addr, port, options) {
   // server socket (one server connection, accepts and opens one socket per client)
   this.serverSocketId = null;
 
-  log('initialized tcp server, not listening yet');
+  this.debug.log('initialized tcp server');
 }
 
 
@@ -83,6 +86,7 @@ TcpServer.prototype.isConnected=function() {
  * @param {Function} callback The function to call on connection
  */
 TcpServer.prototype.listen = function(callback) {
+  this.debug.log('listen');
   // Register connect callback.
   this.callbacks.connect = callback;
   socket.create({}, this._onCreate.bind(this));
@@ -104,7 +108,7 @@ TcpServer.prototype.disconnect = function() {
     try {
       this.openSockets[i].close();
     } catch (ex) {
-      debug.log(ex);
+      this.debug.log(ex);
     }
   }
   this.openSockets=[];
@@ -127,6 +131,8 @@ TcpServer.prototype._onCreate = function(createInfo) {
     socket.onAcceptError.addListener(this._onAcceptError);
     socket.listen(this.serverSocketId, this.addr, this.port, 50,
       this._onListenComplete.bind(this));
+    this.debug.log('Server socket created. id: ', this.serverSocketId);
+    this.debug.log('Request listen add: ', this.addr, ' port: ', this.port);
     this.isListening = true;
   } else {
     error('Unable to create socket');
@@ -143,23 +149,33 @@ TcpServer.prototype._onCreate = function(createInfo) {
 TcpServer.prototype._onListenComplete = function(resultCode) {
   if (resultCode !==0) {
     error('Unable to listen to socket. Resultcode='+resultCode);
+  } else {
+    this.debug.log('Listening');
+    chrome.sockets.tcpServer.getInfo(this.serverSocketId, function (info) {
+      this.debug.log('tcpServer.getInfo: ', info);
+    }.bind(this));
   }
 }
 
 TcpServer.prototype._onAccept = function (info) {
-  if (info.socketId != this.serverSocketId)
+  this.debug.log('serverSocketId', this.serverSocketId);
+  this.debug.log('onAccept', info);
+
+  if (info.socketId != this.serverSocketId) {
+    this.debug.log('passing on connection as not my socket');
     return;
+  }
 
   if (this.openSockets.length >= this.maxConnections) {
     this._onNoMoreConnectionsAvailable(info.clientSocketId);
     return;
   }
 
-  var tcpConnection = new TcpConnection(info.clientSocketId);
+  var tcpConnection = new TcpConnection(info.clientSocketId, this.debug);
   this.openSockets.push(tcpConnection);
 
   tcpConnection.requestSocketInfo(this._onSocketInfo.bind(this));
-  log('Incoming connection handled.');
+  this.debug.log('Incoming connection handled.');
 }
 
 TcpServer.prototype._onAcceptError = function(info) {
@@ -190,9 +206,10 @@ TcpServer.prototype._onSocketInfo = function(tcpConnection, socketInfo) {
  *
  * @param {number} socketId The ID of the server<->client socket
  */
-function TcpConnection(socketId) {
+function TcpConnection(socketId, debug) {
   this.socketId = socketId;
   this.socketInfo = null;
+  this.debug = debug;
 
   // Callback functions.
   this.callbacks = {
@@ -201,9 +218,10 @@ function TcpConnection(socketId) {
     sent: null        // Called when client sends data to server.
   };
 
-  log('Established client connection. Listening...');
-
+  this.debug.log('Established client connection. Listening...');
 };
+
+TcpConnection.prototype = new EventEmitter();
 
 TcpConnection.prototype.setSocketInfo = function(socketInfo) {
   this.socketInfo = socketInfo;
@@ -219,9 +237,7 @@ TcpConnection.prototype.requestSocketInfo = function(callback) {
  *
  * @param {Function} callback The function to call when a message has arrived
  */
-TcpConnection.prototype.startListening = function(callback) {
-  this.callbacks.recv = callback;
-
+TcpConnection.prototype.startListening = function() {
   // Add receive listeners.
   this._onReceive = this._onReceive.bind(this);
   this._onReceiveError = this._onReceiveError.bind(this);
@@ -253,13 +269,10 @@ TcpConnection.prototype.addDataReceivedListener = function(callback) {
  * @param {String} msg The message to send
  * @param {Function} callback The function to call when the message has sent
  */
-TcpConnection.prototype.sendMessage = function(msg, callback) {
+TcpConnection.prototype.sendMessage = function(msg) {
   _stringToArrayBuffer(msg + '\n', function(arrayBuffer) {
     chrome.sockets.tcp.send(this.socketId, arrayBuffer, this._onWriteComplete.bind(this));
   }.bind(this));
-
-  // Register sent callback.
-  this.callbacks.sent = callback;
 };
 
 
@@ -269,10 +282,25 @@ TcpConnection.prototype.sendMessage = function(msg, callback) {
  * @see https://developer.chrome.com/apps/sockets_tcp#method-close
  */
 TcpConnection.prototype.close = function() {
+  this.debug.log('Closing TCP Connection');
   if (this.socketId) {
     chrome.sockets.tcp.onReceive.removeListener(this._onReceive);
     chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
     chrome.sockets.tcp.close(this.socketId);
+  }
+};
+
+/**
+ * Revokes this connection's claim on the TCP connection
+ * without closing it. Useful if the connection is being
+ * passed on to something else
+ *
+ */
+TcpConnection.prototype.revoke = function() {
+  this.debug.log('Revoking TCP Connection');
+  if (this.socketId) {
+    chrome.sockets.tcp.onReceive.removeListener(this._onReceive);
+    chrome.sockets.tcp.onReceiveError.removeListener(this._onReceiveError);
   }
 };
 
@@ -289,7 +317,9 @@ TcpConnection.prototype._onSocketInfo = function(callback, socketInfo) {
     throw "Illegal value for callback: "+callback;
   }
   this.socketInfo = socketInfo;
+  this.debug.log('socket info: ', socketInfo);
   callback(this, socketInfo);
+  this.emit('socketInfo', socketInfo);
 }
 
 /**
@@ -306,17 +336,19 @@ TcpConnection.prototype._onReceive = function(info) {
   if (this.socketId != info.socketId)
     return;
 
-  // Call received callback if there's data in the response.
-  if (this.callbacks.recv) {
-    log('onDataRead');
-    // Convert ArrayBuffer to string.
-    _arrayBufferToString(info.data, this.callbacks.recv.bind(this));
-  }
+  this.debug.log('TCP connection with socketId: ', this.socketId, ' receiving data: ', info);
+
+  this.debug.log('onDataRead');
+  // Convert ArrayBuffer to string.
+  _arrayBufferToString(info.data, function (data) {
+    this.emit('receive', data);
+  }.bind(this));
 };
 
 TcpConnection.prototype._onReceiveError = function (info) {
   if (this.socketId != info.socketId)
     return;
+  this.debug.log('TcpConnection error - will close connection');
   this.close();
 };
 
@@ -328,11 +360,8 @@ TcpConnection.prototype._onReceiveError = function (info) {
  * @param {Object} writeInfo The outgoing message
  */
 TcpConnection.prototype._onWriteComplete = function(writeInfo) {
-  log('onWriteComplete');
-  // Call sent callback.
-  if (this.callbacks.sent) {
-    this.callbacks.sent(writeInfo);
-  }
+  this.debug.log('onWriteComplete');
+  this.emit('sent', writeInfo);
 };
 
 
@@ -369,19 +398,11 @@ function _stringToArrayBuffer(str, callback) {
   f.readAsArrayBuffer(bb);
 }
 
-
-/**
- * Wrapper function for logging
- */
-function log(msg) {
-  debug.log(msg);
-}
-
 /**
  * Wrapper function for error logging
  */
 function error(msg) {
-  console.error(msg);
+  debug.error(msg);
 }
 
 module.exports.TcpServer = TcpServer;
