@@ -56,6 +56,11 @@ PeerDiscovery.prototype.handleResponse = function (dns) {
 
   data = record.parse(ptr, srv, txt, a);
 
+  if (data.ip && data.ip === this.ip) {
+    console.log('Ignoring advert from this proxy');
+    return;
+  }
+
   if ( record.isValid(data)  ) {
     this.emit('peer:discover', data);
   } else {
