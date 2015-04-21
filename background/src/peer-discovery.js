@@ -10,7 +10,8 @@ var PeerDiscovery = function (hostname, ip, port, opts) {
   this.port = port;
 
   var mdnsOpts = {
-    port: opts.port
+    port: opts.mdnsPort || 5406,
+    platform: 'chromeApp'
   };
   this.mdns = opts.mdns ? opts.mdns(mdnsOpts) : multicastDNS(mdnsOpts);
 

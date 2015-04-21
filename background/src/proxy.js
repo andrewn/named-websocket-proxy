@@ -3,6 +3,7 @@ var HttpServer = require('../lib/http-server'),
     EventSource = require('../lib/event-source');
 
 var Channels = require('./channels'),
+    PeerDiscovery = require('./peer-discovery'),
     Peer = require('./peer'),
     protocol = require('./shim-protocol');
 
@@ -14,6 +15,22 @@ var Proxy = function (address, port) {
   this.httpServer_.listen(port, address);
 
   this.channels_ = new Channels();
+  this.peerDiscovery_ = new PeerDiscovery('andrewn', '192.168.0.4', 9009);
+  var self = this;
+
+  this.channels_.on('add', function (channel) {
+    console.log('Channel added', channel);
+    channel.on('peer:add', function (peer) {
+      console.log('Peer added', peer);
+      self.peerDiscovery_.advertisePeer(peer);
+    });
+    channel.on('peer:remove', function (peer) {
+      console.log('Peer removed', peer);
+    });
+    channel.on('peer:change', function (peer) {
+      console.log('Peer changed', peer);
+    });
+  })
 
   this.httpServer_.addEventListener('request', function (req) {
     console.log('An HTTP request!', req);

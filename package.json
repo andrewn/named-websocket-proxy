@@ -30,6 +30,8 @@
     "sinon": "~1.14.1",
     "lodash": "~3.6.0",
     "node-uuid": "~1.4.3",
-    "multicast-mdns": "andrewn/multicast-dns#chrome-app"
+    "multicast-mdns": "andrewn/multicast-dns#chrome-app",
+    "ampersand-events": "~1.1.1",
+    "lodash.assign": "~3.1.0"
   }
 }

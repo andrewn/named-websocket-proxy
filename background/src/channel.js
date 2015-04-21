@@ -1,4 +1,5 @@
-var State = require('ampersand-state');
+var Events = require('ampersand-events'),
+    assign = require('lodash.assign');
 
 var Peers = require('./peers'),
     Peer = require('./peer'),
@@ -11,7 +12,12 @@ var Channel = function (params) {
   }
 
   this.peers = new Peers();
+  this.peers.on('all', function (eventName, model) {
+    this.trigger('peer:'+eventName, model);
+  }.bind(this));
 }
+
+assign(Channel.prototype, Events);
 
 Channel.prototype.addSocket = function (s) {
   var p = new Peer(s, this),

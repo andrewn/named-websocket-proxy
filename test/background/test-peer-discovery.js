@@ -35,7 +35,7 @@ describe('PeerDiscovery', function () {
     });
     it('should allow mdns port to be specified', function () {
       var mdns = createMdnsMock();
-      var pd = new PeerDiscovery('my-computer', '123.123.1.1', 5678, { port: 1234, mdns: mdns });
+      var pd = new PeerDiscovery('my-computer', '123.123.1.1', 5678, { mdnsPort: 1234, mdns: mdns });
       assert.equal(mdns.instance.port, 1234);
     });
   });

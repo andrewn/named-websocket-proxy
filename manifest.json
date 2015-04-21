@@ -12,7 +12,9 @@
       "connect": "*"
     },
     "udp": {
-      "send": "*"
+      "send": "*",
+      "bind": "*",
+      "multicastMembership": ""
     }
   },
   "sandbox": {
