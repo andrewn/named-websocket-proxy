@@ -4,7 +4,7 @@ console.log('Background page initialised');
 
 var config = {
   tcp: {
-    address: '127.0.0.1',
+    address: '0.0.0.0', // bind to all interfaces
     port: 9009
   },
   consoleType: 'basic' // 'advanced' or 'basic'
