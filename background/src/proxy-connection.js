@@ -10,7 +10,7 @@ var ProxyConnection = AmpersandState.extend({
     socket: 'object'
   },
   initialize: function () {
-    this.socket.on('message', function () {
+    this.socket.addEventListener('message', function () {
       console.log('ProxyConnection.message', this.ip);
     }.bind(this));
   }
@@ -20,7 +20,7 @@ var ProxyConnection = AmpersandState.extend({
   Returns a shim socket connection that emits events
   only for this peer
 */
-ProxyConnection.socketForPeer = function (id) {
+ProxyConnection.prototype.socketForPeer = function (id) {
   return {
     send: function () {
       console.log('ProxyConnection.ShimSocket', id);
