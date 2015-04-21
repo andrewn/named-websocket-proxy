@@ -1,6 +1,6 @@
 var debug = require('./debug')('App'),
     Proxy = require('./proxy'),
-    RemoteProxy = require('./remotre-proxy'),
+    RemoteProxy = require('./remote-proxy'),
     Channels = require('./channels'),
     PeerDiscovery = require('./peer-discovery');
 
