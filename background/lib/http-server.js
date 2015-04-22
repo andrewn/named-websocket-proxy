@@ -46,8 +46,8 @@ HttpServer.prototype = {
       t.onConnection_(tcpConnection, info);
     });
     t.readyState_ = 1;
-    t.tcp.on('listening', function () {
-      this.dispatchEvent('ready');
+    t.tcp.on('listening', function (info) {
+      this.dispatchEvent('ready', info);
     }.bind(this));
   },
   disconnect: function () {

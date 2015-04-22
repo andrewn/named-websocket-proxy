@@ -12,6 +12,11 @@ var Proxy = function (address, port) {
 
   this.httpServer_ = new HttpServer(debug);
   this.wsServer_ = new WebSocketServer(this.httpServer_);
+
+  this.httpServer_.addEventListener('ready', function (info) {
+    this.emit('ready', info);
+  }.bind(this));
+
   this.httpServer_.listen(port, address);
 
   this.httpServer_.addEventListener('request', function (req) {

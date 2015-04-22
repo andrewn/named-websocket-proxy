@@ -161,7 +161,7 @@ TcpServer.prototype._onListenComplete = function(resultCode) {
       this.debug.log('tcpServer.getInfo: ', info);
       this.localPort = info.localPort;
       this.localAddress = info.localAddress;
-      this.emit('listening');
+      this.emit('listening', info);
     }.bind(this));
   }
 }

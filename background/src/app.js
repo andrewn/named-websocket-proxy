@@ -4,12 +4,11 @@ var debug = require('./debug'),
     PeerDiscovery = require('./peer-discovery'),
     Channel = require('./channel'),
     Peer = require('./peer'),
+    Promise = require('es6-promise').Promise,
     _ = require('lodash');
 
 var App = function () {
   this.initialized = false;
-
-
 };
 
 App.prototype.init = function () {
@@ -60,8 +59,11 @@ App.prototype.startWithPublicIp = function (publicIp) {
   this.proxies = [];
 
   this.createLocalProxy();
-  this.createExternalProxy();
-  this.createPeerDiscovery();
+  this.createExternalProxy()
+    .then(function () {
+      appLogger.log('External proxy ready with', this.publicPort);
+      this.createPeerDiscovery();
+    }.bind(this));
 };
 
 App.prototype.createLocalProxy = function () {
@@ -159,45 +161,50 @@ App.prototype.createLocalProxy = function () {
 }
 
 App.prototype.createExternalProxy = function () {
-  /*
-    External Proxy server listens on any available port and on
-    the external interface.
-    Handles incoming websockets from the other proxies and removes
-    disconnections
-  */
-  var externalLogger = debug('ExternalProxy');
-  this.externalServer = new ProxyServer(this.publicIp, this.publicPort);
-  this.externalServer.on('connection', function (url, socket, request) {
-
-    externalLogger.log('New external request', socket, url, request);
-
-    var ip = request.headers.Host,
-        proxy = _.find(this.proxies, { ip: ip, socket: socket });
-
-    if (proxy) {
-      throw Error('Proxy from ip ' + proxy.ip + ' already exists');
-      return;
-    }
-
-    externalLogger.log('New connection from ip:', ip);
-    proxy = { ip: ip, socket: socket };
-    this.proxies.push(proxy);
-
-    socket.addEventListener('message', function (evt) {
-      externalLogger.log('socket.message: ', evt);
-      // TODO: route message to localPeers on this message
+  return new Promise(function (resolve, reject) {
+    /*
+      External Proxy server listens on any available port and on
+      the external interface.
+      Handles incoming websockets from the other proxies and removes
+      disconnections
+    */
+    var externalLogger = debug('ExternalProxy');
+    this.externalServer = new ProxyServer(this.publicIp, this.publicPort);
+    this.externalServer.on('ready', function (info) {
+      this.publicPort = info.localPort;
+      resolve();
     }.bind(this));
+    this.externalServer.on('connection', function (url, socket, request) {
 
-    socket.addEventListener('close', function (evt) {
-      externalLogger.log('socket.close, removing proxy connection');
-      _.remove(this.proxies, { ip: ip });
-      // TODO: Remove remote peers using this connection?
-      // TODO: Notify local peers
+      externalLogger.log('New external request', socket, url, request);
+
+      var ip = request.headers.Host,
+          proxy = _.find(this.proxies, { ip: ip, socket: socket });
+
+      if (proxy) {
+        throw Error('Proxy from ip ' + proxy.ip + ' already exists');
+        return;
+      }
+
+      externalLogger.log('New connection from ip:', ip);
+      proxy = { ip: ip, socket: socket };
+      this.proxies.push(proxy);
+
+      socket.addEventListener('message', function (evt) {
+        externalLogger.log('socket.message: ', evt);
+        // TODO: route message to localPeers on this message
+      }.bind(this));
+
+      socket.addEventListener('close', function (evt) {
+        externalLogger.log('socket.close, removing proxy connection');
+        _.remove(this.proxies, { ip: ip });
+        // TODO: Remove remote peers using this connection?
+        // TODO: Notify local peers
+
+      }.bind(this));
 
     }.bind(this));
-
   }.bind(this));
-
 };
 
 App.prototype.createPeerDiscovery = function () {

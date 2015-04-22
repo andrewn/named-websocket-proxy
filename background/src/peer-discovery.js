@@ -3,7 +3,8 @@ var multicastDNS = require('multicast-dns'),
     _ = require('lodash'),
     inherits = require('util').inherits;
 
-var record = require('./peer-discovery-record');
+var record = require('./peer-discovery-record')
+    logger = require('./debug')('Discovery');
 
 var PeerDiscovery = function (hostname, opts) {
   this.opts = opts || {};
@@ -34,15 +35,18 @@ PeerDiscovery.prototype.advertisePeer = function (peer) {
     hostname: this.hostname,
     ip: this.ip,
     port: this.port
-  };
-
-  this.mdns.response({
-    answers: [
+  },
+    answers = [
       record.ptr.encode(params),
       record.srv.encode(params),
       record.txt.encode(params),
       record.a.encode(params)
-    ]
+    ];
+
+  logger.log('advertisePeer', params, answers);
+
+  this.mdns.response({
+    answers: answers
   });
 };
 

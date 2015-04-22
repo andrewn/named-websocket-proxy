@@ -1,3 +1,5 @@
+var _ = require('lodash');
+
 module.exports = {
   ptr: {
     encode: function (params) {
@@ -129,7 +131,8 @@ module.exports = {
     );
   },
   isValid: function (data) {
-    return Object.keys(data).length === 4;
+    var requiredKeys = ['ip', 'port', 'channelName', 'peerId'];
+    return _.every( requiredKeys, _.partial(_.has, data) );
   }
 }
 
