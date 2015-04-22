@@ -100,7 +100,7 @@ App.prototype.createLocalProxy = function () {
     socket.addEventListener('message', function (evt) {
       proxyLogger.log('socket.message: ', evt);
 
-      var peers = Channel.peers(channel, this.localPeers);
+      var locals = Channel.peers(channel, this.localPeers);
 
       var payload = {}, target;
       try {
@@ -111,7 +111,10 @@ App.prototype.createLocalProxy = function () {
 
       if (payload.action === 'broadcast') {
         proxyLogger.log('Broadcast action: ', payload);
-        Channel.broadcastMessage(peer, peers, payload.data);
+        // Send to local peers
+        Channel.broadcastMessage(peer, locals, payload.data);
+        // Send to remote peers
+        Channel.broadcastMessage(peer, Channel.peers(channel, this.remotePeers));
       }
       else if (payload.action === 'message') {
         proxyLogger.log('Direct message action: ', payload);
@@ -125,8 +128,8 @@ App.prototype.createLocalProxy = function () {
         target = Peer.find(payload.target, this.remotePeers);
         if (target) {
           proxyLogger.log('Sending to remote peer: ', payload);
-          // TODO: Send message to remote peer
-          // Channel.directMessage(channel, payload.data, this.localPeers);
+          // Send message to remote peer
+          Channel.directMessage(peer, target, payload.data);
           return;
         }
 
@@ -193,7 +196,53 @@ App.prototype.createExternalProxy = function () {
 
       socket.addEventListener('message', function (evt) {
         externalLogger.log('socket.message: ', evt);
-        // TODO: route message to localPeers on this message
+        var payload = {}, target;
+        try {
+          payload = JSON.parse(evt.data);
+        } catch (err) {
+          console.error('Error parsing message', err, evt);
+        }
+
+        if (payload.action === 'broadcast') {
+          externalLogger.log('Broadcast action: ', payload);
+          // find source peer in remotePeers
+          var source = Peer.find(payload.source, this.remotePeers);
+
+          if (!source) {
+            externalLogger.warn('Broadcast message from peer that is not in remote peers list', payload);
+            return;
+          }
+
+          var channel = Channel.find(payload.channelName, this.channels),
+              peers = Channel.peers(channel, this.localPeers);
+
+          // Send to all local peers in channel
+          Channel.broadcastMessage(source, peers, payload.data);
+        }
+        else if (payload.action === 'message') {
+          externalLogger.log('Direct message action: ', payload);
+          // target = Peer.find(payload.target, this.localPeers);
+          // if (target) {
+          //   proxyLogger.log('Sending to local peer: ', payload);
+          //   Channel.directMessage(peer, target, payload.data);
+          //   return;
+          // }
+
+          // target = Peer.find(payload.target, this.remotePeers);
+          // if (target) {
+          //   proxyLogger.log('Sending to remote peer: ', payload);
+          //   // TODO: Send message to remote peer
+          //   // Channel.directMessage(channel, payload.data, this.localPeers);
+          //   return;
+          // }
+
+          // proxyLogger.warn('Message for peer that cannot be found: ', payload);
+
+          // targetPeer = channel.getPeerById(payload.target);
+          // if (targetPeer) {
+          //   targetPeer.send( protocol.message(peer, payload.data) );
+          // }
+        }
       }.bind(this));
 
       socket.addEventListener('close', function (evt) {
@@ -259,7 +308,7 @@ App.prototype.createPeerDiscovery = function () {
     }
 
     function createRemotePeer() {
-      var peer = { id: record.peerId, ip: record.ip, socket: socket };
+      var peer = { id: record.peerId, channelName: record.channelName, ip: record.ip, socket: socket };
       this.remotePeers.push(peer);
       discoLogger.log('created remote peer', peer);
       // Connect remote peer to local peers and vice versa
