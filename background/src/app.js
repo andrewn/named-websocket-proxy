@@ -221,11 +221,11 @@ App.prototype.createExternalProxy = function () {
         }
         else if (payload.action === 'message') {
           externalLogger.log('Direct message action: ', payload);
-
+          var source = Peer.find(payload.source, this.remotePeers);
           target = Peer.find(payload.target, this.localPeers);
           if (target) {
-            proxyLogger.log('Sending to local peer: ', payload);
-            Channel.directMessage(peer, target, payload.data);
+            externalLogger.log('Sending to local peer: ', payload);
+            Channel.directMessage(source, target, payload.data);
             return;
           }
 
