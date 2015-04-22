@@ -25,7 +25,7 @@ App.prototype.init = function () {
 
   // Create a discovery client for discovering other proxies on
   // the local network
-  this.peerDiscovery = new PeerDiscovery('andrewn', this.ip, this.port);
+  this.peerDiscovery = new PeerDiscovery('andrewn');
 
   // Connect to the local interface on a specific port
   this.localProxy = new Proxy('127.0.0.1', this.port, this.channels, require('./debug')('LocalProxy'));
@@ -36,6 +36,14 @@ App.prototype.init = function () {
 
   // Connect to the remote interface on any available port
   this.remoteProxy = new RemoteProxy(this.ip, 0, this.channels, require('./debug')('RemoteProxy'));
+  this.remoteProxy.on('ready', function () {
+    var info = this.remoteProxy.addressInfo();
+    debug.log('remote proxy address info: ', info);
+    // TODO: Work out why 'ready' event fires twice
+    if (info.port) {
+      this.peerDiscovery.init(info.address, info.port);
+    }
+  }.bind(this));
 
   this.peerDiscovery.on('peer:discover', function (data) {
     debug.log('A remote peer has been discovered', data);

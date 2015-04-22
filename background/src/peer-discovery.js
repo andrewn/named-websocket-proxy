@@ -5,22 +5,27 @@ var multicastDNS = require('multicast-dns'),
 var record = require('./peer-discovery-record');
 
 var PeerDiscovery = function (hostname, ip, port, opts) {
-  opts = opts || {};
+  this.opts = opts || {};
 
   this.hostname = hostname;
   this.ip = ip;
   this.port = port;
 
-  var mdnsOpts = {
-    port: opts.mdnsPort || 5406,
+  this.mdnsOpts = {
+    port: this.opts.mdnsPort || 5406,
     platform: 'chromeApp'
   };
-  this.mdns = opts.mdns ? opts.mdns(mdnsOpts) : multicastDNS(mdnsOpts);
-
-  this.mdns.on('response', this.handleResponse.bind(this));
 };
 
 PeerDiscovery.prototype = new EventEmitter();
+
+PeerDiscovery.prototype.init = function (targetAddress, targetPort) {
+  this.ip = targetAddress;
+  this.port = targetPort;
+
+  this.mdns = this.opts.mdns ? opts.mdns(this.mdnsOpts) : multicastDNS(this.mdnsOpts);
+  this.mdns.on('response', this.handleResponse.bind(this));
+};
 
 PeerDiscovery.prototype.advertisePeer = function (peer) {
   var params = {

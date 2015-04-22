@@ -60,6 +60,8 @@ function TcpServer(addr, port, options) {
   this.debug.log('initialized tcp server');
 }
 
+TcpServer.prototype = new EventEmitter();
+
 
 /**
  * Static method to return available network interfaces.
@@ -90,6 +92,10 @@ TcpServer.prototype.listen = function(callback) {
   // Register connect callback.
   this.callbacks.connect = callback;
   socket.create({}, this._onCreate.bind(this));
+};
+
+TcpServer.prototype.getInfo = function (callback) {
+  chrome.sockets.tcpServer.getInfo(this.serverSocketId, callback);
 };
 
 
@@ -151,8 +157,11 @@ TcpServer.prototype._onListenComplete = function(resultCode) {
     error('Unable to listen to socket. Resultcode='+resultCode);
   } else {
     this.debug.log('Listening');
-    chrome.sockets.tcpServer.getInfo(this.serverSocketId, function (info) {
+    this.getInfo(function (info) {
       this.debug.log('tcpServer.getInfo: ', info);
+      this.localPort = info.localPort;
+      this.localAddress = info.localAddress;
+      this.emit('listening');
     }.bind(this));
   }
 }

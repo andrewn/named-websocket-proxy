@@ -13,6 +13,10 @@ var Proxy = function (address, port, channels, debug) {
   this.wsServer_ = new WebSocketServer(this.httpServer_);
   this.httpServer_.listen(port, address);
 
+  this.httpServer_.addEventListener('ready', function () {
+    this.emit('ready');
+  }.bind(this));
+
   this.channels_ = channels;
   this.proxyConnections_ = new ProxyConnections();
 
@@ -88,6 +92,13 @@ var Proxy = function (address, port, channels, debug) {
 };
 
 Proxy.prototype = new EventEmitter();
+
+Proxy.prototype.addressInfo = function () {
+  return {
+    address: this.httpServer_.tcp.localAddress,
+    port: this.httpServer_.tcp.localPort
+  }
+};
 
 Proxy.prototype.createProxyConnection = function (data) {
   // Existing WS connection?
