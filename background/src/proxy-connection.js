@@ -29,9 +29,10 @@ ShimSocket.prototype.send = function (msg) {
   if (this.sharedSocket.readyState !== 1) {
     console.log('ProxyConnection - shimSocket.send connection not ready, queueing');
     this.messageQueue.push(msg);
+  } else {
+    console.log('ProxyConnection - shimSocket.send', this.peerId, msg);
+    this.sharedSocket.send(msg);
   }
-  console.log('ProxyConnection - shimSocket.send', this.peerId, msg);
-  this.sharedSocket.send(msg);
 };
 
 /*
