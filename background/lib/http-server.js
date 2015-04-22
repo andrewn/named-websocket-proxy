@@ -63,7 +63,7 @@ HttpServer.prototype = {
   },
 
   createHttpRequest_: function (socketId, data/*socketId, info*/) {
-    this.debug.log('createHttpRequest_', socketId, data);
+    this.debug.log('createHttpRequest_', socketId);
 
     var headers = data.substring(0).split('\n'),
         headerMap = {},

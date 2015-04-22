@@ -1,24 +1,27 @@
-var Collection = require('ampersand-collection'),
-    lodashMixin = require('ampersand-collection-lodash-mixin');
+var _ = require('lodash');
 
-var Channel = require('./channel');
+// var Channel = require('./channel');
 
-var instanceMethods = {
-  findOrCreate: function (name) {
-    var channel = this.get(name);
+// var instanceMethods = {
+//   findOrCreate: function (name) {
+//     var channel = this.get(name);
 
-    if (!channel) {
-      channel = new Channel({ name: name });
-      this.add(channel);
-    }
+//     if (!channel) {
+//       channel = new Channel({ name: name });
+//       this.add(channel);
+//     }
 
-    return channel;
+//     return channel;
+//   }
+// };
+
+// var Channels = Collection.extend(instanceMethods, lodashMixin, {
+//    model: Channel,
+//    mainIndex: 'name'
+// });
+
+module.exports = {
+  find: function (name, channels) {
+    return _.find(channels, { name: name });
   }
-};
-
-var Channels = Collection.extend(instanceMethods, lodashMixin, {
-   model: Channel,
-   mainIndex: 'name'
-});
-
-module.exports = Channels;
+}

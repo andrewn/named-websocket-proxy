@@ -1,8 +1,7 @@
 var debug = require('./debug')('App'),
-    Proxy = require('./proxy'),
-    RemoteProxy = require('./remote-proxy'),
-    Channels = require('./channels'),
-    PeerDiscovery = require('./peer-discovery');
+    ProxyServer = require('./proxy-server'),
+    Channel = require('./channel'),
+    Peer = require('./peer');
 
 var App = function () {
   this.initialized = false;
@@ -11,94 +10,122 @@ var App = function () {
 App.prototype.init = function () {
   debug.info('init');
 
-  this.ip = '192.168.0.7';
-  this.port = 9009;
-
   if (this.initialized) {
     debug.warn('Already initialized');
     return;
   }
 
-  // Create shared channels object, representing Channels
-  // and Peers on the network, either local or remote
-  this.channels = new Channels();
+  this.initialized = true;
 
-  // Create a discovery client for discovering other proxies on
-  // the local network
-  this.peerDiscovery = new PeerDiscovery('andrewn');
+  this.publicIp = '192.168.0.7';
+  this.publicPort = 0;
 
-  // Connect to the local interface on a specific port
-  this.localProxy = new Proxy('127.0.0.1', this.port, this.channels, require('./debug')('LocalProxy'));
-  this.localProxy.on('peer:add', function (p) {
-    debug.log('LocalProxy: New peer added', p);
-    this.peerDiscovery.advertisePeer(p);
-  }.bind(this));
+  this.localIp   = '127.0.0.1';
+  this.localPort = 9009;
 
-  // Connect to the remote interface on any available port
-  this.remoteProxy = new RemoteProxy(this.ip, 0, this.channels, require('./debug')('RemoteProxy'));
-  this.remoteProxy.on('ready', function () {
-    var info = this.remoteProxy.addressInfo();
-    debug.log('remote proxy address info: ', info);
-    // TODO: Work out why 'ready' event fires twice
-    if (info.port) {
-      this.peerDiscovery.init(info.address, info.port);
+  // Channels that this proxy is participating in.
+  // If a peer exists in either list, a channel
+  // should be in here
+  this.channels    = [];
+
+  // All connected sockets on this machine
+  this.localPeers  = [];
+
+  // All remote peers that concern this proxy.
+  // If no local peers exists for a channel then
+  // any remote peers in that channel will be removed also.
+  this.remotePeers = [];
+
+  // A cache of adverts about peers on the network
+  this.discoveryAdverts = [];
+
+  // WebSocket connections to other proxies
+  this.proxies = [];
+
+  this.proxyServer = new ProxyServer(this.localIp, this.localPort);
+  this.proxyServer.on('connection', function (channelName, socket) {
+    var channel = Channel.find(channelName, this.channels),
+        peer;
+
+    if (!channel) {
+      channel = { name: channelName };
+      this.channels.push(channel);
     }
-  }.bind(this));
 
-  this.peerDiscovery.on('peer:discover', function (data) {
-    debug.log('A remote peer has been discovered', data);
-    this.remoteProxy.createProxyConnection(data);
-  }.bind(this));
+    peer = { id: Peer.id(), socket: socket, channel: channelName };
 
-  /*
-  this.channels_.on('add', function (channel) {
-    console.log('Channel added', channel);
-    channel.on('peer:add', function (peer) {
-      console.log('Peer added', peer);
-      self.peerDiscovery_.advertisePeer(peer);
-    });
-    channel.on('peer:remove', function (peer) {
-      console.log('Peer removed', peer);
-    });
-    channel.on('peer:change', function (peer) {
-      console.log('Peer changed', peer);
-    });
-  });
+    debug.log('New local peer', peer);
 
-  this.peerDiscovery_.on('peer:discover', function (data) {
-    console.log('peer:discover', data);
-    var channel = this.channels_.findOrCreate(data.channelName);
-    var existingPeer = channel.getPeerById(data.peerId);
-    var url, socket, proxyConnection, peer;
-    console.log('New remote peer discovered for channelName: ', data.channelName);
-    console.log('New remote peer exists? ', existingPeer);
-    if (existingPeer) {
-      // ignore?
-    } else {
-      // see if connection to remote proxy already exists
-      proxyConnection = this.proxyConnections_.get(data.ip);
+    debug.log('before localPeers', this.localPeers.length);
 
-      if (!proxyConnection) {
-        console.log('No existing proxyConnection to remore peer exists:', data.ip);
-        url = 'ws://' + data.ip + ':' + data.port + '/remote-proxy-connection-channel';
-        console.log('new connection between remotes', url);
-        socket = new WebSocket(url);
-        proxyConnection = this.proxyConnections_.add({ ip: data.ip, socket: socket });
+    Channel.connectPeers(peer, this.localPeers);
+    this.localPeers.push(peer);
+
+    debug.log('after localPeers', this.localPeers.length);
+
+    socket.addEventListener('message', function (evt) {
+      debug.log('socket.message: ', evt);
+
+      var peers = Channel.peers(channel, this.localPeers);
+
+      var payload = {}, target;
+      try {
+        payload = JSON.parse(evt.data);
+      } catch (err) {
+        console.error('Error parsing message', err, evt);
       }
 
-      console.log('Create new peer using this connection', proxyConnection);
-      peer = new Peer(proxyConnection.socketForPeer(data.peerId), channel, data.peerId);
-    }
+      if (payload.action === 'broadcast') {
+        debug.log('Broadcast action: ', payload);
+        Channel.broadcastMessage(peer, peers, payload.data);
+      }
+      else if (payload.action === 'message') {
+        debug.log('Direct message action: ', payload);
+        target = Peer.find(payload.target, this.localPeers);
+        if (target) {
+          debug.log('Sending to local peer: ', payload);
+          Channel.directMessage(peer, target, payload.data);
+          return;
+        }
+
+        target = Peer.find(payload.target, this.remotePeers);
+        if (target) {
+          debug.log('Sending to remote peer: ', payload);
+          // Channel.directMessage(channel, payload.data, this.localPeers);
+          return;
+        }
+
+        debug.warn('Message for peer that cannot be found: ', payload);
+
+        targetPeer = channel.getPeerById(payload.target);
+        if (targetPeer) {
+          targetPeer.send( protocol.message(peer, payload.data) );
+        }
+      }
+
+    }.bind(this));
+
+    socket.addEventListener('close', function (evt) {
+      debug.log('socket.close: before remove', peer, this.localPeers.length, this.localPeers);
+
+      // Remove this peer
+      Peer.remove(peer, this.localPeers);
+
+      debug.log('after remove', peer, this.localPeers.length, this.localPeers);
+
+      // Disconnect localPeers in channel
+      Channel.disconnectPeers(peer, Channel.peers(channel, this.localPeers));
+
+      debug.log('Removed local peer', peer);
+    }.bind(this));
+
+
   }.bind(this));
-  */
 
 };
 
 App.prototype.destroy = function () {
   debug.info('destroy');
-  this.localProxy.disconnect();
-  // this.remotelProxy.disconnect();
-  this.peerDiscovery;
 };
 
 module.exports = App;
