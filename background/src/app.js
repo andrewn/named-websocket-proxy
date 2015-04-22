@@ -61,6 +61,7 @@ App.prototype.startWithPublicIp = function (publicIp) {
 
   this.createLocalProxy();
   this.createExternalProxy();
+  this.createPeerDiscovery();
 };
 
 App.prototype.createLocalProxy = function () {
@@ -88,6 +89,9 @@ App.prototype.createLocalProxy = function () {
 
     Channel.connectPeers(peer, this.localPeers);
     this.localPeers.push(peer);
+
+    // Broadcast local peer externally
+    this.peerDiscovery.advertisePeer(peer);
 
     proxyLogger.log('after localPeers', this.localPeers.length);
 
@@ -119,7 +123,7 @@ App.prototype.createLocalProxy = function () {
         target = Peer.find(payload.target, this.remotePeers);
         if (target) {
           proxyLogger.log('Sending to remote peer: ', payload);
-          // TODO:
+          // TODO: Send message to remote peer
           // Channel.directMessage(channel, payload.data, this.localPeers);
           return;
         }
@@ -146,6 +150,10 @@ App.prototype.createLocalProxy = function () {
       Channel.disconnectPeers(peer, Channel.peers(channel, this.localPeers));
 
       proxyLogger.log('Removed local peer', peer);
+
+      // TODO: remove channel if no local peers left
+      // TODO: close connection if no one using it
+
     }.bind(this));
   }.bind(this));
 }
@@ -190,6 +198,70 @@ App.prototype.createExternalProxy = function () {
 
   }.bind(this));
 
+};
+
+App.prototype.createPeerDiscovery = function () {
+  var discoLogger = debug('Discovery');
+  this.peerDiscovery = new PeerDiscovery(Peer.id());
+  this.peerDiscovery.init(this.publicIp, this.publicPort);
+  this.peerDiscovery.on('discover', function (record) {
+    discoLogger.log('discover', record);
+    // This channel will exist if a local peer is
+    // bound to it
+    var channel = Channel.find(record.channelName, this.channels),
+        peer = Peer.find(record.peerId, this.remotePeers),
+        proxy = _.find(this.proxies, { ip: record.ip }),
+        socket;
+
+    if (!channel) {
+      discoLogger.log('no local peer bound to channel: ', record.channelName);
+      this.discoveryAdverts.push(record);
+      return;
+    }
+
+    if (peer) {
+      discoLogger.log('remote peer already exists ', peer);
+      return;
+    }
+
+    if (!proxy) {
+      // Create proxy connection to this proxy
+      socket = new WebSocket('ws://' + record.ip + ':' + record.port + '/remote');
+      discoLogger.log('creating proxy connection to: ', record.ip + ':' + record.port);
+
+      socket.addEventListener('open', function () {
+        discoLogger.log('proxy connection open');
+        this.proxies.push({ ip: record.ip, socket: socket });
+        createRemotePeer.bind(this)();
+      }.bind(this));
+
+      socket.addEventListener('message', function (msg) {
+        discoLogger.log('proxy connection msg', record.ip + ':' + record.port, msg);
+        // TODO: route messages to local peers
+      }.bind(this));
+
+      socket.addEventListener('close', function () {
+        discoLogger.warn('proxy connection closed', record.ip + ':' + record.port);
+        // TODO: notify local peers using this connection
+      }.bind(this));
+    } else {
+      socket = proxy.socket;
+      createRemotePeer.bind(this)();
+    }
+
+    function createRemotePeer() {
+      var peer = { id: record.peerId, ip: record.ip, socket: socket };
+      this.remotePeers.push(peer);
+      discoLogger.log('created remote peer', peer);
+      // Connect remote peer to local peers and vice versa
+      Channel.connectPeers(peer, this.localPeers);
+    };
+
+  }.bind(this));
+  this.peerDiscovery.on('query', function (reply) {
+    discoLogger.log('query');
+    // TODO: call reply to records
+  }.bind(this));
 };
 
 App.prototype.destroy = function () {

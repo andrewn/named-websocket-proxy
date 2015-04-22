@@ -37,6 +37,9 @@ module.exports = {
     debug.log('generate id', id);
     return id;
   },
+  // url: function (channel) {
+  //   return '/' + channel.name + '/' + this.id + '/%s';
+  // },
   remove: function (peer, peers) {
     return _.remove(peers, { id: peer.id });
   },

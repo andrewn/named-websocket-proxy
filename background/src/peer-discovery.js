@@ -1,15 +1,14 @@
 var multicastDNS = require('multicast-dns'),
     EventEmitter = require('events').EventEmitter,
-    _ = require('lodash');
+    _ = require('lodash'),
+    inherits = require('util').inherits;
 
 var record = require('./peer-discovery-record');
 
-var PeerDiscovery = function (hostname, ip, port, opts) {
+var PeerDiscovery = function (hostname, opts) {
   this.opts = opts || {};
 
   this.hostname = hostname;
-  this.ip = ip;
-  this.port = port;
 
   this.mdnsOpts = {
     port: this.opts.mdnsPort || 5406,
@@ -17,7 +16,7 @@ var PeerDiscovery = function (hostname, ip, port, opts) {
   };
 };
 
-PeerDiscovery.prototype = new EventEmitter();
+inherits(PeerDiscovery, EventEmitter);
 
 PeerDiscovery.prototype.init = function (targetAddress, targetPort) {
   this.ip = targetAddress;
@@ -29,9 +28,9 @@ PeerDiscovery.prototype.init = function (targetAddress, targetPort) {
 
 PeerDiscovery.prototype.advertisePeer = function (peer) {
   var params = {
-    channelName: peer.channelName,
+    channelName: peer.channel,
     peerId: peer.id,
-    url: peer.url,
+    url: '/nourl', //peer.url,
     hostname: this.hostname,
     ip: this.ip,
     port: this.port
@@ -67,7 +66,7 @@ PeerDiscovery.prototype.handleResponse = function (dns) {
   }
 
   if ( record.isValid(data)  ) {
-    this.emit('peer:discover', data);
+    this.emit('discover', data);
   } else {
     console.warn('Advertising packet did not contain a whole peer advert', data);
   }
