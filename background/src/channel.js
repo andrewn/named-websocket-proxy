@@ -109,7 +109,7 @@ var funcs = {
     });
   },
   directMessage: function (sourcePeer, targetPeer, payload) {
-    Peer.send(targetPeer, protocol.message(sourcePeer, payload) );
+    Peer.send(targetPeer, protocol.message(sourcePeer, targetPeer, payload) );
   },
   broadcastMessage: function (source, targets, payload) {
     _.forEach(targets, function (peer) {

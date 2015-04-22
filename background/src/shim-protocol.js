@@ -39,10 +39,11 @@ module.exports = {
       data: message
     });
   },
-  message: function (sourcePeer, message) {
+  message: function (sourcePeer, targetPeer, message) {
     return new Message({
       action:  'message',
       source:  sourcePeer.id,
+      target:  targetPeer.id,
       data: message
     });
   }

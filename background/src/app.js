@@ -137,7 +137,7 @@ App.prototype.createLocalProxy = function () {
 
         targetPeer = channel.getPeerById(payload.target);
         if (targetPeer) {
-          targetPeer.send( protocol.message(peer, payload.data) );
+          targetPeer.send( protocol.message(peer, targetPeer, payload.data) );
         }
       }
 
@@ -221,27 +221,15 @@ App.prototype.createExternalProxy = function () {
         }
         else if (payload.action === 'message') {
           externalLogger.log('Direct message action: ', payload);
-          // target = Peer.find(payload.target, this.localPeers);
-          // if (target) {
-          //   proxyLogger.log('Sending to local peer: ', payload);
-          //   Channel.directMessage(peer, target, payload.data);
-          //   return;
-          // }
 
-          // target = Peer.find(payload.target, this.remotePeers);
-          // if (target) {
-          //   proxyLogger.log('Sending to remote peer: ', payload);
-          //   // TODO: Send message to remote peer
-          //   // Channel.directMessage(channel, payload.data, this.localPeers);
-          //   return;
-          // }
+          target = Peer.find(payload.target, this.localPeers);
+          if (target) {
+            proxyLogger.log('Sending to local peer: ', payload);
+            Channel.directMessage(peer, target, payload.data);
+            return;
+          }
 
-          // proxyLogger.warn('Message for peer that cannot be found: ', payload);
-
-          // targetPeer = channel.getPeerById(payload.target);
-          // if (targetPeer) {
-          //   targetPeer.send( protocol.message(peer, payload.data) );
-          // }
+          externalLogger.warn('Message for peer that cannot be found: ', payload);
         }
       }.bind(this));
 
