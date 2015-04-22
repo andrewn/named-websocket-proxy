@@ -125,7 +125,7 @@ Proxy.prototype.createProxyConnection = function (data) {
   }
 
   debug.log('Creating new Peer id: ', data.peerId);
-  debug.log('Adding to channel name: ', data.channel);
+  debug.log('Adding to channel name: ', data.channelName);
   peerSocket = proxyConnection.socketForPeer(data.peerId);
   channel.addSocket(peerSocket, data.peerId);
 };
