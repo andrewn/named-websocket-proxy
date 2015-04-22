@@ -1,6 +1,7 @@
 // https://github.com/GoogleChrome/chrome-app-samples/blob/master/samples/tcpserver/
 var debug = require('../src/debug')('TcpServer'),
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    inherits = require('util').inherits;
 /*
 Copyright 2012 Google Inc.
 
@@ -60,8 +61,7 @@ function TcpServer(addr, port, options) {
   this.debug.log('initialized tcp server');
 }
 
-TcpServer.prototype = new EventEmitter();
-
+inherits(TcpServer, EventEmitter);
 
 /**
  * Static method to return available network interfaces.

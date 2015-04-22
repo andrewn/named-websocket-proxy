@@ -171,6 +171,7 @@ App.prototype.createExternalProxy = function () {
     var externalLogger = debug('ExternalProxy');
     this.externalServer = new ProxyServer(this.publicIp, this.publicPort);
     this.externalServer.on('ready', function (info) {
+      externalLogger.log('has received public port', info);
       this.publicPort = info.localPort;
       resolve();
     }.bind(this));
@@ -210,6 +211,7 @@ App.prototype.createExternalProxy = function () {
 App.prototype.createPeerDiscovery = function () {
   var discoLogger = debug('Discovery');
   this.peerDiscovery = new PeerDiscovery(Peer.id());
+  discoLogger.log('Starting with ', this.publicIp, this.publicPort);
   this.peerDiscovery.init(this.publicIp, this.publicPort);
   this.peerDiscovery.on('discover', function (record) {
     discoLogger.log('discover', record);
