@@ -12,7 +12,7 @@ var PeerDiscovery = function (hostname, opts) {
   this.hostname = hostname;
 
   this.mdnsOpts = {
-    port: this.opts.mdnsPort || 5406,
+    port: this.opts.mdnsPort || 5407,
     platform: 'chromeApp'
   };
 };
