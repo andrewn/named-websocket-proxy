@@ -242,7 +242,7 @@ App.prototype.createExternalProxy = function () {
 
           peer = { id: payload.source, channelName: 'unknown', ip: ip, socket: socket }
           var target = Peer.find(payload.target);
-          Peer.connect(peer, target);
+          Channel.connect(peer, target);
           this.remotePeers.push(peer);
         }
       }.bind(this));
