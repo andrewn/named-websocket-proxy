@@ -240,9 +240,12 @@ App.prototype.createExternalProxy = function () {
             return;
           }
 
-          peer = { id: payload.source, channelName: 'unknown', ip: ip, socket: socket }
-          var target = Peer.find(payload.target);
-          Channel.connect(peer, target);
+          peer = { id: payload.target, channelName: 'unknown', ip: ip, socket: socket }
+          var target = Peer.find(payload.source, this.localPeers);
+          if (!target) {
+            externalLogger.warn('Connect message target not found in local peers: ', payload, this.localPeers);
+          }
+          Channel.connect(target, peer);
           this.remotePeers.push(peer);
         }
       }.bind(this));
