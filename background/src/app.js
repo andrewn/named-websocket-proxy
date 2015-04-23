@@ -231,6 +231,18 @@ App.prototype.createExternalProxy = function () {
 
           externalLogger.warn('Message for peer that cannot be found: ', payload);
         }
+        else if (payload.action === 'connect') {
+          externalLogger.log('Connect message action: ', payload);
+          // var source = Peer.find(payload.source, this.remotePeers);
+          // target = Peer.find(payload.target, this.localPeers);
+          // if (target) {
+          //   externalLogger.log('Sending to local peer: ', payload);
+          //   Channel.directMessage(source, target, payload.data);
+          //   return;
+          // }
+
+          // externalLogger.warn('Message for peer that cannot be found: ', payload);
+        }
       }.bind(this));
 
       socket.addEventListener('close', function (evt) {
