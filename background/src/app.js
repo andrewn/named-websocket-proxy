@@ -220,7 +220,7 @@ App.prototype.createExternalProxy = function () {
           Channel.broadcastMessage(source, peers, payload.data);
         }
         else if (payload.action === 'message') {
-          externalLogger.log('Direct message action: ', payload);
+          externalLogger.log('Direct message action: ', payload, this.remotePeers);
           var source = Peer.find(payload.source, this.remotePeers);
           target = Peer.find(payload.target, this.localPeers);
           if (target) {
