@@ -21,10 +21,16 @@ App.prototype.init = function () {
 
   chrome.system.network.getNetworkInterfaces(function (interfaces) {
     console.log('interfaces', interfaces);
-    var ip = _.find(interfaces, { prefixLength: 24 });
-    if (!ip) { throw Error('cannot find IP address'); }
+    var v4IpMatcher = /\d+\.\d+\.\d+\.\d+/,
+        addresses = _.pluck(interfaces, 'address');
 
-    this.startWithPublicIp(ip.address);
+    var ip = _.find(addresses, function (ip) {
+      return v4IpMatcher.test(ip);
+    });
+
+    if (ip == null) { throw Error('cannot find IP address'); }
+
+    this.startWithPublicIp(ip);
   }.bind(this));
 }
 
