@@ -250,9 +250,12 @@ App.prototype.createExternalProxy = function () {
           var target = Peer.find(payload.source, this.localPeers);
           if (!target) {
             externalLogger.warn('Connect message target not found in local peers: ', payload, this.localPeers);
+          } else {
+            externalLogger.log('Local target peer: ', target);
           }
-          Channel.connect(target, peer);
+          Channel.connect(peer, target);
           this.remotePeers.push(peer);
+          externalLogger.log('Added remote peer: ', peer);
         }
       }.bind(this));
 
