@@ -89,6 +89,7 @@ App.prototype.createLocalProxy = function () {
 
     proxyLogger.log('before localPeers', this.localPeers.length);
 
+    // FIX / TODO: this should be a subset of the peers that are in the channel
     Channel.connectPeers(peer, this.localPeers);
     this.localPeers.push(peer);
 
@@ -233,15 +234,16 @@ App.prototype.createExternalProxy = function () {
         }
         else if (payload.action === 'connect') {
           externalLogger.log('Connect message action: ', payload);
-          // var source = Peer.find(payload.source, this.remotePeers);
-          // target = Peer.find(payload.target, this.localPeers);
-          // if (target) {
-          //   externalLogger.log('Sending to local peer: ', payload);
-          //   Channel.directMessage(source, target, payload.data);
-          //   return;
-          // }
+          var peer = Peer.find(payload.source, this.remotePeers);
+          if (peer) {
+            externalLogger.warn('Connect message for existing remote peer', peer);
+            return;
+          }
 
-          // externalLogger.warn('Message for peer that cannot be found: ', payload);
+          peer = { id: payload.source, channelName: 'unknown', ip: ip, socket: socket }
+          var target = Peer.find(payload.target);
+          Peer.connect(peer, target);
+          this.remotePeers.push(peer);
         }
       }.bind(this));
 

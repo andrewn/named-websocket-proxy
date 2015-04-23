@@ -90,6 +90,8 @@ var funcs = {
 
     return _.filter(peers, { channel: channel.name });
   },
+  connect: connect,
+  disconnect: disconnect,
   connectPeers: function (newPeer, peers) {
     debug.log('connectPeers: ', newPeer, peers);
 
