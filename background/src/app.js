@@ -282,11 +282,11 @@ App.prototype.addHandlersForRemoteProxy = function (socket, logger) {
         return;
       }
 
-      var channel = Channel.find(payload.channelName, this.channels),
+      var channel = Channel.find(payload.channel, this.channels),
           peers = Channel.peers(channel, this.localPeers);
 
       if (!channel) {
-        logger.warn('Cannot find channel', payload.channelName, this.channels);
+        logger.warn('Cannot find channel', payload.channel, this.channels);
         return;
       }
 
