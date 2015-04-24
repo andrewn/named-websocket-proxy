@@ -75,6 +75,8 @@ App.prototype.createLocalProxy = function () {
   this.proxyServer = new ProxyServer(this.localIp, this.localPort);
   this.proxyServer.on('connection', function (channelName, socket) {
 
+    // TODO: Move into tested helper?
+
     var channel = Channel.find(channelName, this.channels),
         peers,
         sourcePeer;
@@ -232,7 +234,11 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
       console.error('Error parsing message', err, evt);
     }
 
-    if (payload.action === 'broadcast') {
+    var state = Router.handleRemoteMessage(msg, localPeers, remotePeers);
+
+    this.remotePeers = state.remotes;
+
+    /*if (payload.action === 'broadcast') {
       logger.log('Broadcast action: ', payload);
       // find source peer in remotePeers
       var source = Peer.find(payload.source, this.remotePeers);
@@ -299,7 +305,7 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
       Channel.connectPeers(peer, [target]);
       this.remotePeers.push(peer);
       logger.log('Added remote peer: ', peer);
-    }
+    }*/
   }.bind(this));
 
   proxy.socket.addEventListener('close', function () {

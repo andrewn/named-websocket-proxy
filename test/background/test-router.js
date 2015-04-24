@@ -69,6 +69,7 @@ describe('Router', function () {
       assert.ok( b.socket.send.called);
     });
   });
+
   describe('handleLocalDisconnection', function () {
     it('sends disconnect to local and remote peers', function () {
       var channel = { name: 'channel-1' },
@@ -96,5 +97,46 @@ describe('Router', function () {
 
       assert.deepEqual(state.channels, []);
     });
+  });
+
+  describe('handleRemoteMessage', function () {
+    it('re-broadcasts to local peers', function () {
+      var channel = { name: 'channel-1' },
+          a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
+          b = { id: 'peer-b', channel: 'channel-1', socket: createSocketMock() },
+          msg = { "action":"broadcast", "data":"all", "source": "peer-a", "target": "peer-b" };
+
+
+      Router.handleRemoteMessage(msg, [b]);
+
+      assert.ok(!a.socket.send.called);
+      assert.ok( b.socket.send.called);
+    });
+    it('routes direct message to local peer', function () {
+      var channel = { name: 'channel-1' },
+          a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
+          b = { id: 'peer-b', channel: 'channel-1', socket: createSocketMock() },
+          msg = {"action":"message","target":"peer-b","data":"blah"};
+
+      Router.handleRemoteMessage(msg, [b]);
+
+      assert.ok(!a.socket.send.called);
+      assert.ok( b.socket.send.called);
+    });
+    it('connects a new remote peer', function () {
+      var channel = { name: 'channel-1' },
+          a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
+          socket = createSocketMock(),
+          msg = {"action":"connect","source":"peer-b","target":"peer-a","data":"blah"};
+
+      var state = Router.handleRemoteMessage(msg, [a], [], { ip: '1.1.1.1', socket: socket });
+
+      assert.ok(a.socket.send.called, 'a was not called');
+      assert.ok(socket.send.called, 'proxy socket was called');
+
+      assert.equal(state.remotes.length, 1);
+      assert.equal(state.remotes[0].id, 'peer-b');
+    });
+
   });
 });

@@ -6,7 +6,8 @@ var Channel = require('./channel'),
 
 var Router  = {
   handleLocalMessage: handleLocalMessage,
-  handleLocalDisconnection: handleLocalDisconnection
+  handleLocalDisconnection: handleLocalDisconnection,
+  handleRemoteMessage: handleRemoteMessage
 };
 
 module.exports = Router;
@@ -76,4 +77,43 @@ function handleLocalDisconnection(channel, disconnectingPeer, localPeers, remote
     locals: localPeers,
     channels: channels
   };
+}
+
+function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
+  var target, localPeer, remotePeer;
+
+  if (msg.action === 'broadcast' || msg.action === 'message') {
+    logger.log('Remote ' + msg.action, msg);
+    target = Peer.find(msg.target, localPeers);
+
+    if (target) {
+      Peer.send(target, msg);
+    } else {
+      logger.warn('Remote ' + msg.action + ' for non-existant local peer', msg);
+    }
+  } else if (msg.action === 'connect') {
+
+    remotePeer = Peer.find(msg.source, remotePeers);
+    if (remotePeer) {
+      logger.warn('Remote peer already exists', msg);
+      return;
+    }
+
+    localPeer = Peer.find(msg.target, localPeers);
+    if (!localPeer) {
+      logger.warn('Cannot find target local peer', msg);
+      return;
+    }
+
+    remotePeer = Peer.create({ name: localPeer.channel }, proxy.socket, proxy.ip, msg.source);
+    Channel.connectPeers(remotePeer, [localPeer]);
+    remotePeers.push(remotePeer);
+    logger.log('Added remote peer: ', remotePeer);
+
+    return {
+      remotes: remotePeers
+    };
+  } else {
+    logger.warn('Unknown action: ', msg.action, msg);
+  }
 }
