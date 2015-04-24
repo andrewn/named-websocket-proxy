@@ -73,12 +73,14 @@ describe('ShimProtocol', function () {
     describe('.message', function () {
       it('returns the right structure', function () {
         var source = createPeerMock(),
+            target = createPeerMock(),
             expected = {
               action: 'message',
               source: source.id,
+              target: target.id,
               data: 'a direct message'
             },
-            actual = protocol.message(source, 'a direct message');
+            actual = protocol.message(source, target, 'a direct message');
 
         assertProperties(actual, expected);
       });
