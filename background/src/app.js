@@ -234,7 +234,7 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
       console.error('Error parsing message', err, evt);
     }
 
-    var state = Router.handleRemoteMessage(msg, localPeers, remotePeers);
+    var state = Router.handleRemoteMessage(payload, this.localPeers, this.remotePeers, proxy);
 
     this.remotePeers = state.remotes;
 

@@ -80,7 +80,10 @@ function handleLocalDisconnection(channel, disconnectingPeer, localPeers, remote
 }
 
 function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
-  var target, localPeer, remotePeer;
+  var state = {
+        remotes: remotePeers
+      },
+      target, localPeer, remotePeer;
 
   if (msg.action === 'broadcast' || msg.action === 'message') {
     logger.log('Remote ' + msg.action, msg);
@@ -93,27 +96,27 @@ function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
     }
   } else if (msg.action === 'connect') {
 
-    remotePeer = Peer.find(msg.source, remotePeers);
+    remotePeer = Peer.find(msg.target, remotePeers);
     if (remotePeer) {
       logger.warn('Remote peer already exists', msg);
-      return;
+      return state;
     }
 
-    localPeer = Peer.find(msg.target, localPeers);
+    localPeer = Peer.find(msg.source, localPeers);
     if (!localPeer) {
       logger.warn('Cannot find target local peer', msg);
-      return;
+      return state;
     }
 
-    remotePeer = Peer.create({ name: localPeer.channel }, proxy.socket, proxy.ip, msg.source);
+    remotePeer = Peer.create({ name: localPeer.channel }, proxy.socket, proxy.ip, msg.target);
     Channel.connectPeers(remotePeer, [localPeer]);
     remotePeers.push(remotePeer);
     logger.log('Added remote peer: ', remotePeer);
 
-    return {
-      remotes: remotePeers
-    };
+    return state;
   } else {
     logger.warn('Unknown action: ', msg.action, msg);
   }
+
+  return state;
 }

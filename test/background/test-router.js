@@ -127,7 +127,7 @@ describe('Router', function () {
       var channel = { name: 'channel-1' },
           a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
           socket = createSocketMock(),
-          msg = {"action":"connect","source":"peer-b","target":"peer-a","data":"blah"};
+          msg = {"action":"connect","source":"peer-a","target":"peer-b","data":"blah"};
 
       var state = Router.handleRemoteMessage(msg, [a], [], { ip: '1.1.1.1', socket: socket });
 
