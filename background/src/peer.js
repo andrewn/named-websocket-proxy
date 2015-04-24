@@ -30,6 +30,9 @@ var EventSource = require('../lib/event-source'),
 
 module.exports = {
   find: function (id, peers) {
+    if (id == null) { throw Error('no peer id given'); }
+    if (peers == null) { throw Error('no peer list given'); }
+
     return _.find(peers, { id: id });
   },
   id: function () {
