@@ -121,7 +121,8 @@ var funcs = {
     if (targets == null || targets.length == 0) { throw Error('no targets given'); }
     if (payload == null) { throw Error('no message payload given'); }
 
-    _.forEach(targets, function (peer) {
+    var targetsExcludingSource = _.reject(targets, { id: source.id });
+    _.forEach(targetsExcludingSource, function (peer) {
       funcs.directMessage(source, peer, payload);
     });
   },

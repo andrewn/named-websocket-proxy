@@ -4,6 +4,7 @@ var debug = require('./debug'),
     PeerDiscovery = require('./peer-discovery'),
     Channel = require('./channel'),
     Peer = require('./peer'),
+    Proxy = require('./proxy'),
     networkUtils = require('./network-utils'),
     Promise = require('es6-promise').Promise,
     _ = require('lodash');
@@ -72,44 +73,47 @@ App.prototype.createLocalProxy = function () {
   var proxyLogger = debug('LocalProxy');
   this.proxyServer = new ProxyServer(this.localIp, this.localPort);
   this.proxyServer.on('connection', function (channelName, socket) {
+
     var channel = Channel.find(channelName, this.channels),
-        peer;
+        peers,
+        sourcePeer;
 
     if (!channel) {
       channel = { name: channelName };
       this.channels.push(channel);
+      proxyLogger.log('Creating new channel', channel);
     }
 
-    peer = Peer.create(channel, socket);
+    sourcePeer = Peer.create(channel, socket);
 
-    proxyLogger.log('New local peer', peer);
+    proxyLogger.log('New local peer', sourcePeer);
 
-    proxyLogger.log('before localPeers', this.localPeers.length);
+    locals = Channel.peers(channel, locals);
 
-    // FIX / TODO: this should be a subset of the peers that are in the channel
-    Channel.connectPeers(peer, this.localPeers);
-    this.localPeers.push(peer);
+    Channel.connectPeers(sourcePeer, this.localPeers);
+    this.localPeers.push(sourcePeer);
 
     // Broadcast local peer externally
-    this.peerDiscovery.advertisePeer(peer);
-
-    proxyLogger.log('after localPeers', this.localPeers.length);
+    this.peerDiscovery.advertisePeer(sourcePeer);
 
     socket.addEventListener('message', function (evt) {
+
       proxyLogger.log('socket.message: ', evt);
+
+      var payload = {};
+      try {
+        payload = JSON.parse(evt.data);
+      } catch (err) {
+        console.error('Error parsing message', err, evt);
+      }
+
+      Router.handleLocalMessage(channel, sourcePeer, payload, this.localPeers, this.remotePeers);
 
       var locals = Channel.peers(channel, this.localPeers),
           remotes = Channel.peers(channel, this.remotePeers);
 
       proxyLogger.log('local peers', locals);
       proxyLogger.log('remote peers', remotes);
-
-      var payload = {}, target;
-      try {
-        payload = JSON.parse(evt.data);
-      } catch (err) {
-        console.error('Error parsing message', err, evt);
-      }
 
       if (payload.action === 'broadcast') {
         proxyLogger.log('Broadcast action: ', payload);
@@ -351,9 +355,11 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
     logger.log('proxy connection closed');
     var state = Proxy.close(proxy, this.proxies, this.remotePeers, this.localPeers);
 
-    this.localPeers = state.locals;
     this.remotePeers = state.remotes;
     this.proxies = state.proxies;
+    logger.log('localPeers', this.localPeers);
+    logger.log('remotePeers', this.remotePeers);
+    logger.log('proxies', this.proxies);
 
   }.bind(this));
 }
