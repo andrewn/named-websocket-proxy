@@ -114,6 +114,24 @@ function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
     logger.log('Added remote peer: ', remotePeer);
 
     return state;
+  } else if (msg.action === 'disconnect') {
+    notifiedLocalPeer = Peer.find(msg.source, localPeers);
+
+    if (!notifiedLocalPeer) {
+      logger.warn('Cannot find target local peer', msg);
+      return state;
+    }
+
+    disconnectedRemotePeer = Peer.find(msg.target, remotePeers);
+    if (!disconnectedRemotePeer) {
+      logger.warn('Cannot find source remote peer', msg);
+      return state;
+    }
+
+    Channel.disconnectPeers(disconnectedRemotePeer, [notifiedLocalPeer]);
+    Peer.remove(disconnectedRemotePeer, remotePeers);
+
+    logger.warn('Removed disconnect remote peer', msg);
   } else {
     logger.warn('Unknown action: ', msg.action, msg);
   }

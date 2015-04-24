@@ -137,6 +137,19 @@ describe('Router', function () {
       assert.equal(state.remotes.length, 1);
       assert.equal(state.remotes[0].id, 'peer-b');
     });
+    it('disconnects a remote peer', function () {
+      var channel = { name: 'channel-1' },
+          a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
+          b = { id: 'peer-b', channel: 'channel-1', ip: '1.2.3.4', socket: createSocketMock() },
+          socket = createSocketMock(),
+          msg = {"action":"disconnect","source":"peer-a","target":"peer-b","data":""};
 
+      var state = Router.handleRemoteMessage(msg, [a], [b], { ip: '1.1.1.1', socket: socket });
+
+      assert.ok(a.socket.send.called, 'a was not called');
+      assert.ok(!socket.send.called, 'proxy socket was called');
+
+      assert.equal(state.remotes.length, 0);
+    });
   });
 });
