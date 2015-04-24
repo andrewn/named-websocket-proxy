@@ -93,7 +93,10 @@ var funcs = {
   connect: connect,
   disconnect: disconnect,
   connectPeers: function (newPeer, peers) {
-    debug.log('connectPeers: ', newPeer, peers);
+    debug.log('connectPeers: ', typeof newPeer, typeof peers);
+
+    if (newPeer == null) { throw Error('newPeer not given'); }
+    if (peers == null)   { throw Error('peers not given');   }
 
     // Connect existing to newPeer
     _.forEach(peers, function (p) {

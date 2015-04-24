@@ -20,6 +20,40 @@ describe('Channel', function () {
       });
     });
   });
+  describe('connectPeers', function () {
+    it('should throw if newPeer not given', function () {
+      assert.throws(function () {
+        Channel.connectPeers(null, target);
+      });
+    });
+    it('should throw if peers not given', function () {
+      assert.throws(function () {
+        Channel.connectPeers(source, null);
+      });
+    });
+    it('should send messages to each peer', function () {
+      var source = { id: 'peer-a', socket: createSocketMock() },
+          target = { id: 'peer-b', socket: createSocketMock() },
+          sourceExpectedMsg = JSON.stringify({"action":"connect","source":"peer-a","target":"peer-b","payload":""}),
+          targetExpectedMsg = JSON.stringify({"action":"connect","source":"peer-b","target":"peer-a","payload":""});
+
+      Channel.connectPeers(source, [target]);
+
+      // Targets is called abotu source
+      assert.ok(target.socket.send.called, 'target not called');
+      assert.ok(target.socket.send.calledWith(targetExpectedMsg), 'target message not as expected');
+
+      // Souce is called about target
+      assert.ok(source.socket.send.called, 'source not called');
+      assert.ok(source.socket.send.calledWith(sourceExpectedMsg), 'source message not as expected');
+
+    });
+    it('should error if no channels given', function () {
+      assert.throws(function () {
+        Channel.find('my-channel-name');
+      });
+    });
+  });
   // describe('.addSocket', function () {
   //   it('returns a peer object connected to channel', function () {
   //     var s = createSocketMock();

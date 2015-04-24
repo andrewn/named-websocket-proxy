@@ -5,7 +5,7 @@ var assert = helpers.assert,
 
 var Channels = require('../../background/src/channels');
 
-describe('Channels', function () {
+describe.skip('Channels', function () {
   describe('.findOrCreate', function () {
     beforeEach(function () {
       this.c = new Channels();
