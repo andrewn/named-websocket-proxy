@@ -133,6 +133,7 @@ App.prototype.createLocalProxy = function () {
 
         proxyLogger.warn('Message for peer that cannot be found: ', payload);
 
+        // FIXME: channel shouldn't be instance, should be data
         targetPeer = channel.getPeerById(payload.target);
         if (targetPeer) {
           targetPeer.send( protocol.message(peer, targetPeer, payload.data) );

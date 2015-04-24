@@ -75,4 +75,16 @@ describe('Peer', function () {
         assert.equal(actual, b);
     });
   });
+  describe('remove', function () {
+    it('removes peer from list', function () {
+      var a = { id: 'peer-a', channel: 'channel-1' },
+          b = { id: 'peer-b', channel: 'channel-2' },
+          c = { id: 'peer-c', channel: 'channel-1' },
+          list = [a, b, c];
+
+      Peer.remove(b, list);
+
+      assert.deepEqual(list, [a, c]);
+    });
+  });
 });
