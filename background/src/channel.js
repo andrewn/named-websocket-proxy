@@ -117,6 +117,10 @@ var funcs = {
     Peer.send(targetPeer, protocol.message(sourcePeer, targetPeer, payload) );
   },
   broadcastMessage: function (source, targets, payload) {
+    if (source == null) { throw Error('no source given'); }
+    if (targets == null || targets.length == 0) { throw Error('no targets given'); }
+    if (payload == null) { throw Error('no message payload given'); }
+
     _.forEach(targets, function (peer) {
       funcs.directMessage(source, peer, payload);
     });

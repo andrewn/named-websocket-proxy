@@ -66,6 +66,40 @@ describe('Channel', function () {
         assert.deepEqual(actual, [a, c]);
       });
     });
+    describe('broadcastMessage', function () {
+      it('should error if no source, peers or msg given', function () {
+        var a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
+            b = { id: 'peer-b', channel: 'channel-2', socket: createSocketMock() },
+            c = { id: 'peer-c', channel: 'channel-1', socket: createSocketMock() };
+
+        assert.throws(function () {
+          Channel.broadcastMessage(null, [a, b], 'hello');
+        });
+        assert.throws(function () {
+          Channel.broadcastMessage(a, undefined, 'hello');
+        });
+        assert.throws(function () {
+          Channel.broadcastMessage(a, [], 'hello');
+        });
+        assert.throws(function () {
+          Channel.broadcastMessage(a, [b, c]);
+        });
+      });
+      it('should send message to all given peers', function () {
+        var a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
+            b = { id: 'peer-b', channel: 'channel-2', socket: createSocketMock() },
+            c = { id: 'peer-c', channel: 'channel-1', socket: createSocketMock() };
+
+        var expectedMsgB = JSON.stringify({"action":"message","source":"peer-a","target":"peer-b","data":"hello"}),
+            expectedMsgC = JSON.stringify({"action":"message","source":"peer-a","target":"peer-c","data":"hello"});
+
+        Channel.broadcastMessage(a, [b, c], 'hello');
+
+        assert.ok(!a.socket.send.called, 'source should not be called');
+        assert.ok(b.socket.send.calledWith(expectedMsgB), 'b should be called');
+        assert.ok(c.socket.send.calledWith(expectedMsgC), 'c should be called');
+      })
+    });
   });
   // describe('.addSocket', function () {
   //   it('returns a peer object connected to channel', function () {
