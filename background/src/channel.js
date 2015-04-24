@@ -124,6 +124,12 @@ var funcs = {
     _.forEach(targets, function (peer) {
       funcs.directMessage(source, peer, payload);
     });
+  },
+  remoteBroadcastMessage: function (source, remotes, payload) {
+    _.forEach(remotes, function (r) {
+      debug.log('Sending broadcast to remote', r, payload);
+      Peer.send(r, protocol.broadcast(source, r, payload));
+    });
   }
 };
 
