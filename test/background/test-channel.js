@@ -56,6 +56,36 @@ describe('Channel', function () {
     });
   });
 
+  describe('disconnectPeers', function () {
+    it('should throw if newPeer or peers not given', function () {
+      assert.throws(function () {
+        Channel.disconnectPeers(null, target);
+      });
+      assert.throws(function () {
+        Channel.disconnectPeers(source, null);
+      });
+    });
+    it('should send disconnect message to each peer', function () {
+      var source = { id: 'peer-a', socket: createSocketMock() },
+          target = { id: 'peer-b', socket: createSocketMock() },
+          targetExpectedMsg = JSON.stringify({"action":"disconnect","source":"peer-b","target":"peer-a","payload":""});
+
+      Channel.disconnectPeers(source, [target]);
+
+      // Targets is called abotu source
+      assert.ok(target.socket.send.called, 'target not called');
+      assert.ok(target.socket.send.calledWith(targetExpectedMsg), 'target message not as expected');
+
+      // Source is not called as it's disconnected
+      assert.ok(!source.socket.send.called);
+    });
+    it('should error if no channels given', function () {
+      assert.throws(function () {
+        Channel.find('my-channel-name');
+      });
+    });
+  });
+
   describe('peers', function () {
     it('should find peers for channel', function () {
       var a = { id: 'peer-a', channel: 'channel-1' },

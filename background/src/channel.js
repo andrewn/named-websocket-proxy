@@ -66,7 +66,7 @@ function connect(sourcePeer, targetPeer) {
 }
 
 function disconnect(sourcePeer, targetPeer) {
-  Peer.send(targetPeer, protocol.disconnect(sourcePeer) );
+  Peer.send(targetPeer, protocol.disconnect(sourcePeer, targetPeer) );
 }
 
 // function disconnect(sourcePeer) {

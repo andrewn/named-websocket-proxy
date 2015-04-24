@@ -24,9 +24,10 @@ module.exports = {
       payload: '',
     });
   },
-  disconnect: function (sourcePeer) {
+  disconnect: function (sourcePeer, targetPeer) {
     return new Message({
       action:  'disconnect',
+      source:  targetPeer.id,
       target:  sourcePeer.id,
       payload: '',
     });

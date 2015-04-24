@@ -44,13 +44,15 @@ describe('ShimProtocol', function () {
     });
     describe('.disconnect', function () {
       it('returns the right structure', function () {
-        var peer = createPeerMock(),
+        var source = createPeerMock(),
+            target = createPeerMock(),
             expected = {
               action:  'disconnect',
-              target:  peer.id,
+              source:  target.id,
+              target:  source.id,
               payload: '',
             },
-            actual = protocol.disconnect(peer);
+            actual = protocol.disconnect(source, target);
 
         assertProperties(actual, expected);
       });
