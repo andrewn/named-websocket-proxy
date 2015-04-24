@@ -282,7 +282,7 @@ App.prototype.addHandlersForRemoteProxy = function (socket, logger) {
         return;
       }
 
-      var channel = Channel.find(payload.channel, this.channels),
+      var channel = Channel.find(source.channel, this.channels),
           peers = Channel.peers(channel, this.localPeers);
 
       if (!channel) {
