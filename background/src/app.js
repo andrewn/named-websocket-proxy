@@ -247,7 +247,7 @@ App.prototype.createExternalProxy = function () {
         else if (payload.action === 'connect') {
           externalLogger.log('Connect message action: ', payload);
 
-          var channel = Chanel.find(payload.channel, this.channels);
+          var channel = Channel.find(payload.channel, this.channels);
 
           if (!channel) {
             externalLogger.warn('No local channel found', payload.channel);
