@@ -122,8 +122,8 @@ var funcs = {
     if (payload == null) { throw Error('no message payload given'); }
 
     var targetsExcludingSource = _.reject(targets, { id: source.id });
-    _.forEach(targetsExcludingSource, function (peer) {
-      funcs.directMessage(source, peer, payload);
+    _.forEach(targetsExcludingSource, function (target) {
+      Peer.send(target, protocol.broadcast(source, target, payload) );
     });
   },
   remoteBroadcastMessage: function (source, remotes, payload) {

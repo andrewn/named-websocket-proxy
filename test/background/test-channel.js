@@ -124,8 +124,8 @@ describe('Channel', function () {
           b = { id: 'peer-b', channel: 'channel-2', socket: createSocketMock() },
           c = { id: 'peer-c', channel: 'channel-1', socket: createSocketMock() };
 
-      var expectedMsgB = JSON.stringify({"action":"message","source":"peer-a","target":"peer-b","data":"hello"}),
-          expectedMsgC = JSON.stringify({"action":"message","source":"peer-a","target":"peer-c","data":"hello"});
+      var expectedMsgB = JSON.stringify({"action":"broadcast","source":"peer-a","target":"peer-b","data":"hello"}),
+          expectedMsgC = JSON.stringify({"action":"broadcast","source":"peer-a","target":"peer-c","data":"hello"});
 
       Channel.broadcastMessage(a, [b, c], 'hello');
 

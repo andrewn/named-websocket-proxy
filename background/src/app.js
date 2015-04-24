@@ -5,6 +5,7 @@ var debug = require('./debug'),
     Channel = require('./channel'),
     Peer = require('./peer'),
     Proxy = require('./proxy'),
+    Router = require('./router'),
     networkUtils = require('./network-utils'),
     Promise = require('es6-promise').Promise,
     _ = require('lodash');
@@ -88,9 +89,8 @@ App.prototype.createLocalProxy = function () {
 
     proxyLogger.log('New local peer', sourcePeer);
 
-    locals = Channel.peers(channel, locals);
-
-    Channel.connectPeers(sourcePeer, this.localPeers);
+    locals = Channel.peers(channel, this.localPeers);
+    Channel.connectPeers(sourcePeer, locals);
     this.localPeers.push(sourcePeer);
 
     // Broadcast local peer externally
@@ -107,46 +107,8 @@ App.prototype.createLocalProxy = function () {
         console.error('Error parsing message', err, evt);
       }
 
+      // Router local message to local or remote peers
       Router.handleLocalMessage(channel, sourcePeer, payload, this.localPeers, this.remotePeers);
-
-      var locals = Channel.peers(channel, this.localPeers),
-          remotes = Channel.peers(channel, this.remotePeers);
-
-      proxyLogger.log('local peers', locals);
-      proxyLogger.log('remote peers', remotes);
-
-      if (payload.action === 'broadcast') {
-        proxyLogger.log('Broadcast action: ', payload);
-        // Send to local peers
-        Channel.broadcastMessage(peer, locals, payload.data);
-        // Send broadcast message to remote peers
-        Channel.remoteBroadcastMessage(peer, remotes, payload.data);
-      }
-      else if (payload.action === 'message') {
-        proxyLogger.log('Direct message action: ', payload);
-        target = Peer.find(payload.target, this.localPeers);
-        if (target) {
-          proxyLogger.log('Sending to local peer: ', payload);
-          Channel.directMessage(peer, target, payload.data);
-          return;
-        }
-
-        target = Peer.find(payload.target, this.remotePeers);
-        if (target) {
-          proxyLogger.log('Sending to remote peer: ', payload);
-          // Send message to remote peer
-          Channel.directMessage(peer, target, payload.data);
-          return;
-        }
-
-        proxyLogger.warn('Message for peer that cannot be found: ', payload);
-
-        // FIXME: channel shouldn't be instance, should be data
-        targetPeer = channel.getPeerById(payload.target);
-        if (targetPeer) {
-          targetPeer.send( protocol.message(peer, targetPeer, payload.data) );
-        }
-      }
 
     }.bind(this));
 
