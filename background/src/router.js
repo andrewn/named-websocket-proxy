@@ -131,7 +131,7 @@ function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
     Channel.disconnectPeers(disconnectedRemotePeer, [notifiedLocalPeer]);
     Peer.remove(disconnectedRemotePeer, remotePeers);
 
-    logger.warn('Removed disconnect remote peer', msg);
+    logger.log('Removed disconnect remote peer', msg);
   } else {
     logger.warn('Unknown action: ', msg.action, msg);
   }
