@@ -159,7 +159,12 @@ App.prototype.createLocalProxy = function () {
 
       proxyLogger.log('Removed local peer', peer);
 
-      // TODO: remove channel if no local peers left
+      // Remove channel if no local peers left
+      if (Channel.peers(channel, this.localPeers).length === 0) {
+        proxyLogger.log('No local peers in channel, deleting', peer);
+        _.remove(this.channels, { channel: channel.name });
+      }
+
       // TODO: close connection if no one using it
 
     }.bind(this));
@@ -197,7 +202,7 @@ App.prototype.createExternalProxy = function () {
       proxy = { ip: ip, socket: socket };
       this.proxies.push(proxy);
 
-      this.addHandlersForRemoteProxy(socket, externalLogger);
+      this.addHandlersForRemoteProxy(proxy, externalLogger);
 
     }.bind(this));
   }.bind(this));
@@ -240,7 +245,7 @@ App.prototype.createPeerDiscovery = function () {
 
         createRemotePeer.bind(this)();
 
-        this.addHandlersForRemoteProxy(socket, discoLogger);
+        this.addHandlersForRemoteProxy(proxy, discoLogger);
       }.bind(this));
     } else {
       createRemotePeer.bind(this)();
@@ -262,8 +267,8 @@ App.prototype.createPeerDiscovery = function () {
   }.bind(this));
 };
 
-App.prototype.addHandlersForRemoteProxy = function (socket, logger) {
-  socket.addEventListener('message', function (evt) {
+App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
+  proxy.socket.addEventListener('message', function (evt) {
     logger.log('socket.message: ', evt);
     var payload = {}, target;
     try {
@@ -329,7 +334,7 @@ App.prototype.addHandlersForRemoteProxy = function (socket, logger) {
         return;
       }
 
-      peer = Peer.create(channel, socket, payload.target);
+      peer = Peer.create(channel, proxy.socket, payload.target);
       var target = Peer.find(payload.source, this.localPeers);
       if (!target) {
         logger.warn('Connect message target not found in local peers: ', payload, this.localPeers);
@@ -342,11 +347,13 @@ App.prototype.addHandlersForRemoteProxy = function (socket, logger) {
     }
   }.bind(this));
 
-  socket.addEventListener('close', function (evt) {
-    logger.log('socket.close, removing proxy connection');
-    _.remove(this.proxies, { ip: ip });
-    // TODO: Remove remote peers using this connection?
-    // TODO: Notify local peers
+  proxy.socket.addEventListener('close', function () {
+    logger.log('proxy connection closed');
+    var state = Proxy.close(proxy, this.proxies, this.remotePeers, this.localPeers);
+
+    this.localPeers = state.locals;
+    this.remotePeers = state.remotes;
+    this.proxies = state.proxies;
 
   }.bind(this));
 }
