@@ -76,26 +76,29 @@ describe('Router', function () {
           a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
           b = { id: 'peer-b', channel: 'channel-1', socket: createSocketMock() },
           c = { id: 'peer-c', channel: 'channel-1', ip: '1.2.1.1', socket: createSocketMock() },
-          msg = { "action":"broadcast", "data":"all" };
+          msg = { "action":"broadcast", "data":"all" },
+          locals = [a, b],
+          channels = [channel];
 
-      var state = Router.handleLocalDisconnection(channel, a, [a, b], [c], [channel]);
+      Router.handleLocalDisconnection(channel, a, locals, [c], channels);
 
       assert.ok(!a.socket.send.called, 'a was called');
       assert.ok( b.socket.send.called, 'b was not called');
       assert.ok( c.socket.send.called, 'c was not called');
 
-      assert.deepEqual(state.locals, [b]);
-      assert.deepEqual(state.channels, [channel]);
+      assert.deepEqual(locals, [b]);
+      assert.deepEqual(channels, [channel]);
     });
     it('removes channel if no local peers left', function () {
       var channel = { name: 'channel-1' },
           a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
           b = { id: 'peer-b', channel: 'channel-1', socket: createSocketMock() },
+          channels = [channel],
           msg = { "action":"broadcast", "data":"all" };
 
-      var state = Router.handleLocalDisconnection(channel, a, [a], [], [channel]);
+     Router.handleLocalDisconnection(channel, a, [a], [], channels);
 
-      assert.deepEqual(state.channels, []);
+      assert.deepEqual(channels, []);
     });
   });
 
@@ -126,30 +129,34 @@ describe('Router', function () {
     it('connects a new remote peer', function () {
       var channel = { name: 'channel-1' },
           a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
+          locals = [a],
+          remotes = [],
           socket = createSocketMock(),
           msg = {"action":"connect","source":"peer-a","target":"peer-b","data":"blah"};
 
-      var state = Router.handleRemoteMessage(msg, [a], [], { ip: '1.1.1.1', socket: socket });
+      Router.handleRemoteMessage(msg, locals, remotes, { ip: '1.1.1.1', socket: socket });
 
       assert.ok(a.socket.send.called, 'a was not called');
       assert.ok(socket.send.called, 'proxy socket was called');
 
-      assert.equal(state.remotes.length, 1);
-      assert.equal(state.remotes[0].id, 'peer-b');
+      assert.equal(remotes.length, 1);
+      assert.equal(remotes[0].id, 'peer-b');
     });
     it('disconnects a remote peer', function () {
       var channel = { name: 'channel-1' },
           a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
           b = { id: 'peer-b', channel: 'channel-1', ip: '1.2.3.4', socket: createSocketMock() },
           socket = createSocketMock(),
+          locals = [a],
+          remotes = [b],
           msg = {"action":"disconnect","source":"peer-a","target":"peer-b","data":""};
 
-      var state = Router.handleRemoteMessage(msg, [a], [b], { ip: '1.1.1.1', socket: socket });
+      Router.handleRemoteMessage(msg, locals, remotes, { ip: '1.1.1.1', socket: socket });
 
       assert.ok(a.socket.send.called, 'a was not called');
       assert.ok(!socket.send.called, 'proxy socket was called');
 
-      assert.equal(state.remotes.length, 0);
+      assert.equal(remotes.length, 0);
     });
   });
 });

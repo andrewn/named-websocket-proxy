@@ -117,10 +117,7 @@ App.prototype.createLocalProxy = function () {
     socket.addEventListener('close', function (evt) {
       proxyLogger.log('socket.close:', sourcePeer);
 
-      var state = Router.handleLocalDisconnection(channel, sourcePeer, this.localPeers, this.remotePeers);
-
-      this.localPeers = state.locals;
-      this.channels = state.channels;
+      Router.handleLocalDisconnection(channel, sourcePeer, this.localPeers, this.remotePeers);
 
       // TODO: close proxy connection if no one using it?
 
@@ -234,9 +231,7 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
       console.error('Error parsing message', err, evt);
     }
 
-    var state = Router.handleRemoteMessage(payload, this.localPeers, this.remotePeers, proxy);
-
-    this.remotePeers = state.remotes;
+    Router.handleRemoteMessage(payload, this.localPeers, this.remotePeers, proxy);
 
     /*if (payload.action === 'broadcast') {
       logger.log('Broadcast action: ', payload);
@@ -310,10 +305,8 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
 
   proxy.socket.addEventListener('close', function () {
     logger.log('proxy connection closed');
-    var state = Proxy.close(proxy, this.proxies, this.remotePeers, this.localPeers);
+    Proxy.close(proxy, this.proxies, this.remotePeers, this.localPeers);
 
-    this.remotePeers = state.remotes;
-    this.proxies = state.proxies;
     logger.log('localPeers', this.localPeers);
     logger.log('remotePeers', this.remotePeers);
     logger.log('proxies', this.proxies);

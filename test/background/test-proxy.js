@@ -22,13 +22,13 @@ describe('Proxy', function () {
           remotes = [ c ],
           expectedMsg = JSON.stringify(protocol.disconnect(c, a));
 
-      var state = Proxy.close(proxy, proxies, locals, remotes);
+      Proxy.close(proxy, proxies, locals, remotes);
 
       // Proxy would be deleted
-      assert.deepEqual(state.proxies, [], 'proxy should be deleted');
+      assert.deepEqual(proxies, [], 'proxy should be deleted');
 
       // Remote would be deleted
-      assert.deepEqual(state.remotes, [], 'remote should be deleted');
+      assert.deepEqual(remotes, [], 'remote should be deleted');
 
       // Locals in same channel would have disconnect message sent
       assert.ok(a.socket.send.called, 'send not called');
