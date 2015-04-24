@@ -5,7 +5,8 @@ var Channel = require('./channel'),
     logger = require('./debug')('Router');
 
 var Router  = {
-  handleLocalMessage: handleLocalMessage
+  handleLocalMessage: handleLocalMessage,
+  handleLocalDisconnection: handleLocalDisconnection
 };
 
 module.exports = Router;
@@ -47,4 +48,32 @@ function handleLocalMessage(channel, sourcePeer, msg, localPeers, remotePeers) {
   } else {
     logger.warn('Unknown action: ', msg.action, msg);
   }
+}
+
+
+function handleLocalDisconnection(channel, disconnectingPeer, localPeers, remotePeers, channels) {
+  var remainingPeers;
+
+  // Remove this peer
+  Peer.remove(disconnectingPeer, localPeers);
+
+  remainingLocalPeers = Channel.peers(channel, localPeers);
+  remainingRemotePeers = Channel.peers(channel, remotePeers);
+
+  // Disconnect localPeers in channel
+  Channel.disconnectPeers(disconnectingPeer, remainingLocalPeers);
+
+  // Disconnect remotePeers in channel
+  Channel.disconnectPeers(disconnectingPeer, remainingRemotePeers);
+
+  // Remove channel if no local peers left
+  if (Channel.peers(channel, localPeers).length === 0) {
+    logger.log('No local peers in channel, deleting');
+    _.remove(channels, { name: channel.name });
+  }
+
+  return {
+    locals: localPeers,
+    channels: channels
+  };
 }

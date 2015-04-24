@@ -113,25 +113,14 @@ App.prototype.createLocalProxy = function () {
     }.bind(this));
 
     socket.addEventListener('close', function (evt) {
-      proxyLogger.log('socket.close: before remove', peer, this.localPeers.length, this.localPeers);
+      proxyLogger.log('socket.close:', sourcePeer);
 
-      // Remove this peer
-      Peer.remove(peer, this.localPeers);
+      var state = Router.handleLocalDisconnection(channel, sourcePeer, this.localPeers, this.remotePeers);
 
-      proxyLogger.log('after remove', peer, this.localPeers.length, this.localPeers);
+      this.localPeers = state.locals;
+      this.channels = state.channels;
 
-      // Disconnect localPeers in channel
-      Channel.disconnectPeers(peer, Channel.peers(channel, this.localPeers));
-
-      proxyLogger.log('Removed local peer', peer);
-
-      // Remove channel if no local peers left
-      if (Channel.peers(channel, this.localPeers).length === 0) {
-        proxyLogger.log('No local peers in channel, deleting', peer);
-        _.remove(this.channels, { channel: channel.name });
-      }
-
-      // TODO: close connection if no one using it
+      // TODO: close proxy connection if no one using it?
 
     }.bind(this));
   }.bind(this));
