@@ -3,32 +3,7 @@ var EventSource = require('../lib/event-source'),
     _ = require('lodash'),
     debug = require('./debug')('Peer');
 
-// var Peer = function (socket, channel, id) {
-//   EventSource.apply(this);
-//   this.id = id || uuid.v4();
-//   this.url = '/' + channel.name + '/' + this.id + '/%s';
-//   this.channelName = channel.name;
-//   this.socket = socket;
-//   this.socket.addEventListener('message', this.handleEvent.bind(this));
-// };
-
-// Peer.prototype.__proto__ = EventSource.prototype;
-
-// Peer.prototype.handleEvent = function () {
-//   var eventArgs = ['message'].concat( _.toArray(arguments) );
-//   return this.dispatchEvent.apply(this, eventArgs);
-// };
-
-// Peer.prototype.send = function (msg) {
-//   console.log('Peer id: ', this.id, ' sending: ', msg.toString());
-//   return this.socket.send(msg.toString());
-// };
-
-// Peer.prototype.valueOf = function () {
-//   return this.socket;
-// };
-
-module.exports = {
+var Peer = {
   find: function (id, peers) {
     if (id == null) { throw Error('no peer id given'); }
     if (peers == null) { throw Error('no peer list given'); }
@@ -39,9 +14,21 @@ module.exports = {
     var id = uuid.v4();
     return id;
   },
-  // url: function (channel) {
-  //   return '/' + channel.name + '/' + this.id + '/%s';
-  // },
+  create: function (channel, socket, optIpAddr, optId) {
+    if (optId && !optIpAddr) {
+      throw Error('If id provided, ip must also be supplied');
+    }
+
+    var peer = {
+        id: optId || Peer.id(),
+        channel: channel.name,
+        socket: socket
+      };
+
+    if (optIpAddr) { peer.ip = optIpAddr; }
+
+    return peer;
+  },
   remove: function (peer, peers) {
     return _.remove(peers, { id: peer.id });
   },
@@ -51,3 +38,5 @@ module.exports = {
     peer.socket.send(data);
   }
 }
+
+module.exports = Peer;

@@ -80,7 +80,7 @@ App.prototype.createLocalProxy = function () {
       this.channels.push(channel);
     }
 
-    peer = { id: Peer.id(), socket: socket, channel: channelName };
+    peer = Peer.create(socket, channel);
 
     proxyLogger.log('New local peer', peer);
 
@@ -246,13 +246,20 @@ App.prototype.createExternalProxy = function () {
         }
         else if (payload.action === 'connect') {
           externalLogger.log('Connect message action: ', payload);
+
+          var channel = Chanel.find(payload.channel, this.channels);
+
+          if (!channel) {
+            externalLogger.warn('No local channel found', payload.channel);
+          }
+
           var peer = Peer.find(payload.source, this.remotePeers);
           if (peer) {
             externalLogger.warn('Connect message for existing remote peer', peer);
             return;
           }
 
-          peer = { id: payload.target, channelName: payload.channel, ip: ip, socket: socket }
+          peer = Peer.create(channel, socket, payload.target);
           var target = Peer.find(payload.source, this.localPeers);
           if (!target) {
             externalLogger.warn('Connect message target not found in local peers: ', payload, this.localPeers);
@@ -328,7 +335,7 @@ App.prototype.createPeerDiscovery = function () {
     }
 
     function createRemotePeer() {
-      var peer = { id: record.peerId, channelName: record.channelName, ip: record.ip, socket: socket };
+      var peer = Peer.create(channel, socket, record.ip, record.peerId);
       this.remotePeers.push(peer);
       discoLogger.log('created remote peer', peer);
       // Connect remote peer to local peers and vice versa
