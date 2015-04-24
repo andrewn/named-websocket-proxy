@@ -80,7 +80,7 @@ App.prototype.createLocalProxy = function () {
       this.channels.push(channel);
     }
 
-    peer = Peer.create(socket, channel);
+    peer = Peer.create(channel, socket);
 
     proxyLogger.log('New local peer', peer);
 
