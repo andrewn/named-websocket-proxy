@@ -23,7 +23,7 @@ PeerDiscovery.prototype.init = function (targetAddress, targetPort) {
   this.ip = targetAddress;
   this.port = targetPort;
 
-  this.mdns = this.opts.mdns ? opts.mdns(this.mdnsOpts) : multicastDNS(this.mdnsOpts);
+  this.mdns = this.opts.mdns ? this.opts.mdns(this.mdnsOpts) : multicastDNS(this.mdnsOpts);
   this.mdns.on('response', this.handleResponse.bind(this));
 };
 

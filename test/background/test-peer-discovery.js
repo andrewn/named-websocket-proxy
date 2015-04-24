@@ -31,22 +31,36 @@ describe('PeerDiscovery', function () {
   describe('creation', function () {
     it('should allow mdns library injection', function () {
       var mdns = createMdnsMock(),
-          pd = new PeerDiscovery('my-computer', '123.123.1.1', 5678, { mdns: mdns });
-
+          pd = new PeerDiscovery('my-computer', { mdns: mdns });
+      pd.init();
       assert.equal(pd.mdns, mdns.instance);
     });
     it('should allow mdns port to be specified', function () {
       var mdns = createMdnsMock();
-      var pd = new PeerDiscovery('my-computer', '123.123.1.1', 5678, { mdnsPort: 1234, mdns: mdns });
+      var pd = new PeerDiscovery('my-computer', { mdnsPort: 1234, mdns: mdns });
+      pd.init('0.0.0.0', 5678);
       assert.equal(mdns.instance.port, 1234);
+    });
+  });
+  describe('init', function () {
+    it('should allow host address and port to be specified', function () {
+      var mdns = createMdnsMock(),
+          pd = new PeerDiscovery('my-computer', { mdns: mdns });
+
+      pd.init('123.123.1.1', 5678);
+
+      assert.equal(pd.ip, '123.123.1.1');
+      assert.equal(pd.port, 5678);
     });
   });
   describe('.advertisePeer()', function () {
     it('should construct Named WebSocket DNS-SD records for Peer', function () {
       var mdns = createMdnsMock(),
           c = createChannelMock(),
-          p = new Peer(createSocketMock(), c),
-          pd = new PeerDiscovery('my-computer', '123.123.1.1', 5678, { mdns: mdns });
+          p = { id: 'peer-a', channel: 'channel-a', socket: createSocketMock() },
+          pd = new PeerDiscovery('my-computer', { mdns: mdns });
+
+      pd.init('123.123.1.1', 5678);
 
       pd.advertisePeer(p);
 
@@ -56,9 +70,11 @@ describe('PeerDiscovery', function () {
   describe('.on peer:discover', function () {
     it('should parse incoming DNS-SD responses into Peer', function (done) {
       mdns = createMdnsMock();
-      pd = new PeerDiscovery('my-computer', '123.123.1.1', 5678, { mdns: mdns });
+      pd = new PeerDiscovery('my-computer', { mdns: mdns });
 
-      pd.on('peer:discover', function (data) {
+      pd.init('123.123.1.1', 5678);
+
+      pd.on('discover', function (data) {
         assert.equal(data.peerId, 'b2c5b427-823a-4161-978e-ba3830a7d556');
         assert.equal(data.channelName, 'bbc.nws.test');
 
