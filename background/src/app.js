@@ -235,33 +235,25 @@ App.prototype.createPeerDiscovery = function () {
 
       socket.addEventListener('open', function () {
         discoLogger.log('proxy connection open');
-        this.proxies.push({ ip: record.ip, socket: socket });
-        // createRemotePeer.bind(this)();
+        proxy = { ip: record.ip, socket: socket };
+        this.proxies.push(proxy);
+
+        createRemotePeer.bind(this)();
+
         this.addHandlersForRemoteProxy(socket, discoLogger);
       }.bind(this));
+    } else {
+      createRemotePeer.bind(this)();
     }
-    //   socket.addEventListener('message', function (msg) {
-    //     discoLogger.log('proxy connection msg', record.ip + ':' + record.port, msg);
-    //     // TODO: route messages to local peers
-    //   }.bind(this));
 
-    //   socket.addEventListener('close', function () {
-    //     discoLogger.warn('proxy connection closed', record.ip + ':' + record.port);
-    //     // TODO: notify local peers using this connection
-    //   }.bind(this));
-    // } else {
-    //   socket = proxy.socket;
-    //   createRemotePeer.bind(this)();
-    // }
-
-    // function createRemotePeer() {
-    //   var peer = Peer.create(channel, socket, record.ip, record.peerId);
-    //   this.remotePeers.push(peer);
-    //   discoLogger.log('created remote peer', peer);
-    //   // Connect remote peer to local peers and vice versa
-    //   // FIXME: Find in channel
-    //   Channel.connectPeers(peer, this.localPeers);
-    // };
+    function createRemotePeer() {
+      var peer = Peer.create(channel, socket, record.ip, record.peerId);
+      this.remotePeers.push(peer);
+      discoLogger.log('created remote peer', peer);
+      // Connect remote peer to local peers and vice versa
+      // FIXME: Find in channel
+      Channel.connectPeers(peer, this.localPeers);
+    };
 
   }.bind(this));
   this.peerDiscovery.on('query', function (reply) {
