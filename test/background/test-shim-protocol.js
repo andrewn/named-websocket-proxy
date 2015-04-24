@@ -35,6 +35,7 @@ describe('ShimProtocol', function () {
               action:  'connect',
               source:  to.id,
               target:  from.id,
+              channel: to.channel,
               payload: '',
             },
             actual = protocol.connect(from, to);

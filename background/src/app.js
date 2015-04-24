@@ -98,7 +98,11 @@ App.prototype.createLocalProxy = function () {
     socket.addEventListener('message', function (evt) {
       proxyLogger.log('socket.message: ', evt);
 
-      var locals = Channel.peers(channel, this.localPeers);
+      var locals = Channel.peers(channel, this.localPeers),
+          remotes = Channel.peers(channel, this.remotePeers);
+
+      proxyLogger.log('local peers', locals);
+      proxyLogger.log('remote peers', remotes);
 
       var payload = {}, target;
       try {
@@ -112,7 +116,7 @@ App.prototype.createLocalProxy = function () {
         // Send to local peers
         Channel.broadcastMessage(peer, locals, payload.data);
         // Send to remote peers
-        Channel.broadcastMessage(peer, Channel.peers(channel, this.remotePeers));
+        Channel.broadcastMessage(peer, remotes, payload.data);
       }
       else if (payload.action === 'message') {
         proxyLogger.log('Direct message action: ', payload);
@@ -215,6 +219,16 @@ App.prototype.createExternalProxy = function () {
           var channel = Channel.find(payload.channelName, this.channels),
               peers = Channel.peers(channel, this.localPeers);
 
+          if (!channel) {
+            externalLogger.warn('Cannot find channel', payload.channelName, this.channels);
+            return;
+          }
+
+          if (!peers || peers.length == 0) {
+            externalLogger.warn('No local peers for broadcast message', payload, peers);
+            return;
+          }
+
           // Send to all local peers in channel
           Channel.broadcastMessage(source, peers, payload.data);
         }
@@ -238,7 +252,7 @@ App.prototype.createExternalProxy = function () {
             return;
           }
 
-          peer = { id: payload.target, channelName: 'unknown', ip: ip, socket: socket }
+          peer = { id: payload.target, channelName: payload.channel, ip: ip, socket: socket }
           var target = Peer.find(payload.source, this.localPeers);
           if (!target) {
             externalLogger.warn('Connect message target not found in local peers: ', payload, this.localPeers);

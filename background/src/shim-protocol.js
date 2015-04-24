@@ -21,6 +21,7 @@ module.exports = {
       action:  'connect',
       source:  targetPeer.id,
       target:  sourcePeer.id,
+      chanel:  sourcePeer.channel,
       payload: '',
     });
   },
