@@ -32,6 +32,7 @@
     "node-uuid": "~1.4.3",
     "multicast-mdns": "andrewn/multicast-dns#chrome-app",
     "ampersand-events": "~1.1.1",
-    "lodash.assign": "~3.1.0"
+    "lodash.assign": "~3.1.0",
+    "chai-as-promised": "~5.0.0"
   }
 }

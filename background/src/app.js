@@ -4,6 +4,7 @@ var debug = require('./debug'),
     PeerDiscovery = require('./peer-discovery'),
     Channel = require('./channel'),
     Peer = require('./peer'),
+    networkUtils = require('./network-utils'),
     Promise = require('es6-promise').Promise,
     _ = require('lodash');
 
@@ -19,19 +20,9 @@ App.prototype.init = function () {
     return;
   }
 
-  chrome.system.network.getNetworkInterfaces(function (interfaces) {
-    console.log('interfaces', interfaces);
-    var v4IpMatcher = /\d+\.\d+\.\d+\.\d+/,
-        addresses = _.pluck(interfaces, 'address');
-
-    var ip = _.find(addresses, function (ip) {
-      return v4IpMatcher.test(ip);
-    });
-
-    if (ip == null) { throw Error('cannot find IP address'); }
-
-    this.startWithPublicIp(ip);
-  }.bind(this));
+  networkUtils
+    .findv4Ip(chrome.system.network.getNetworkInterfaces)
+    .then(this.startWithPublicIp.bind(this), appLogger.error);
 }
 
 App.prototype.startWithPublicIp = function (publicIp) {

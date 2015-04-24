@@ -1,9 +1,14 @@
 var sinon = require('sinon'),
+    chai = require('chai'),
+    chaiAsPromised = require('chai-as-promised'),
     EventSource = require('../background/lib/event-source');
 
+chai.use(chaiAsPromised);
+
 module.exports = {
-  assert: require('chai').assert,
+  assert: chai.assert,
   spy: sinon.spy,
+  stub: sinon.stub,
   mock: sinon.mock,
   createPeerMock: (function () {
     var id = 0;
