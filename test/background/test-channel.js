@@ -53,6 +53,19 @@ describe('Channel', function () {
         Channel.find('my-channel-name');
       });
     });
+    describe('peers', function () {
+      it('should find peers for channel', function () {
+        var a = { id: 'peer-a', channel: 'channel-1' },
+            b = { id: 'peer-b', channel: 'channel-2' },
+            c = { id: 'peer-c', channel: 'channel-1' },
+            channel = { name: 'channel-1' };
+
+        var actual = Channel.peers(channel, [a, b, c]);
+
+        assert.equal(actual.length, 2, 'wrong number of peers found');
+        assert.deepEqual(actual, [a, c]);
+      });
+    });
   });
   // describe('.addSocket', function () {
   //   it('returns a peer object connected to channel', function () {
