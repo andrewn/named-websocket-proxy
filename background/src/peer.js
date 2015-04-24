@@ -34,7 +34,6 @@ module.exports = {
   },
   id: function () {
     var id = uuid.v4();
-    debug.log('generate id', id);
     return id;
   },
   // url: function (channel) {
