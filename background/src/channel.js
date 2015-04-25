@@ -1,65 +1,8 @@
-var _ = require('lodash'),
-    protocol = require('./shim-protocol'),
+var _ = require('lodash');
+
+var protocol = require('./shim-protocol'),
     debug = require('./debug')('Channel'),
     Peer = require('./peer');
-
-// var Events = require('ampersand-events'),
-//     assign = require('lodash.assign');
-
-// var Peers = require('./peers'),
-//     Peer = require('./peer'),
-//     protocol = require('./shim-protocol');
-
-// var Channel = function (params) {
-//   this.name = params.name;
-//   if (!this.name) {
-//     throw new Error('name is required');
-//   }
-
-//   this.peers = new Peers();
-//   this.peers.on('all', function (eventName, model) {
-//     this.trigger('peer:'+eventName, model);
-//   }.bind(this));
-// }
-
-// assign(Channel.prototype, Events);
-
-// Channel.prototype.addSocket = function (s, /* optional */ id) {
-//   var p = new Peer(s, this, id),
-//       connectSourceToTarget = _.curry(connect)(p),
-//       connectTargetToSource = _.curryRight(connect)(p);
-
-//   this.peers.forEach( connectSourceToTarget );
-
-//   if (this.peers.length > 0) {
-//     this.peers.forEach( function (peer, index) {
-//       connectTargetToSource(peer);
-//     });
-//   }
-
-//   this.peers.push(p);
-//   return p;
-// }
-
-// Channel.prototype.removePeer = function (p) {
-//   this.peers.remove({ id: p.id });
-//   this.peers.forEach(disconnect(p));
-//   return p;
-// }
-
-// Channel.prototype.broadcastFromPeer = function (msg, peer) {
-//   this.peers.reject(peer).forEach(broadcastMsgFromPeer(msg, peer));
-// }
-
-// Channel.prototype.getPeerById = function (id) {
-//   return this.peers.get(id) || null;
-// };
-
-// function broadcastMsgFromPeer(payload, sourcePeer) {
-//   return function (targetPeer) {
-//     targetPeer.send( protocol.broadcast(sourcePeer, targetPeer, payload) );
-//   }
-// }
 
 function connect(sourcePeer, targetPeer) {
   Peer.send(targetPeer, protocol.connect(sourcePeer, targetPeer) );
@@ -68,14 +11,6 @@ function connect(sourcePeer, targetPeer) {
 function disconnect(sourcePeer, targetPeer) {
   Peer.send(targetPeer, protocol.disconnect(sourcePeer, targetPeer) );
 }
-
-// function disconnect(sourcePeer) {
-//   return function (targetPeer) {
-//     targetPeer.send( protocol.disconnect(sourcePeer) );
-//   };
-// }
-
-// module.exports = Channel;
 
 var funcs = {
   find: function (name, channels) {

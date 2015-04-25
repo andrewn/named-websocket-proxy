@@ -54,32 +54,6 @@ describe('Peer', function () {
       assert.isString(id);
       assert.equal(id.length, UUID_LENGTH);
     });
-    // it('should generate a URL', function () {
-    //   var peer = new Peer(createSocketMock(), createChannelMock());
-
-    //   assert.equal(peer.url, '/mock-channel/' + peer.id + '/%s');
-    // });
-    // it('should allow messages to be sent', function () {
-    //   var socket = createSocketMock(),
-    //       msg = JSON.stringify({ a:1, b:2 }),
-    //       peer = new Peer(socket, createChannelMock());
-
-    //   peer.send(msg);
-    //   assert.ok(socket.send.called);
-    //   assert.ok(socket.send.calledWith(msg));
-    // });
-    // it('should allow messages to be received', function (done) {
-    //   var socket = createSocketMock(),
-    //       msg = { a:1, b:2 },
-    //       peer = new Peer(socket, createChannelMock());
-
-    //   peer.addEventListener('message', function (data) {
-    //     assert.equal(data, msg);
-    //     done();
-    //   });
-
-    //   socket.dispatchEvent('message', msg);
-    // });
   });
   describe('find', function () {
     it('throws if no id or list given', function () {

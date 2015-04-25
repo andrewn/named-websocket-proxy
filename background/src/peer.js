@@ -1,5 +1,4 @@
-var EventSource = require('../lib/event-source'),
-    uuid = require('node-uuid');
+var uuid = require('node-uuid');
     _ = require('lodash'),
     debug = require('./debug')('Peer');
 

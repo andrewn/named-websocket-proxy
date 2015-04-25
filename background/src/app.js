@@ -1,3 +1,6 @@
+var Promise = require('es6-promise').Promise,
+    _ = require('lodash');
+
 var debug = require('./debug'),
     appLogger = debug('App'),
     ProxyServer = require('./proxy-server'),
@@ -6,9 +9,8 @@ var debug = require('./debug'),
     Peer = require('./peer'),
     Proxy = require('./proxy'),
     Router = require('./router'),
-    networkUtils = require('./network-utils'),
-    Promise = require('es6-promise').Promise,
-    _ = require('lodash');
+    networkUtils = require('./network-utils');
+;
 
 var App = function () {
   this.initialized = false;
