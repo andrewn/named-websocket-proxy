@@ -1,4 +1,4 @@
-window.vis = function (el, peers, events) {
+window.vis = function (el, channels, events) {
 
   var format,
       color,
@@ -18,6 +18,16 @@ window.vis = function (el, peers, events) {
       .size([diameter, diameter])
       .padding(2);
 
+    // Clickable title
+    d3.select(el).append('div')
+      .text(channels[0].id)
+      .style('font-size', '3em')
+      .on('click', function () {
+        console.log('Channel name clicked');
+        channels[0].socket.send('broadcast');
+      });
+
+    // Visualisation itself
     svg = d3.select(el).append("svg")
       .attr("width", diameter)
       .attr("height", diameter)
@@ -26,14 +36,14 @@ window.vis = function (el, peers, events) {
 
   function render() {
     var node = svg.selectAll(".node")
-        .data(bubble.nodes(classes(peers))
+        .data(bubble.nodes(classes(channels))
         .filter(function(d) { return !d.children; }));
 
     node.enter().append("g")
         .attr("class", "node")
         .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
         .on('click', function (d) {
-          d.socket.send('ping');
+          d.socket.send('direct');
         });
 
     node.exit()
@@ -54,8 +64,8 @@ window.vis = function (el, peers, events) {
   }
 
   // Returns a flattened hierarchy containing all leaf nodes under the root.
-  function classes(root) {
-    var items = peers.map(function (p) {
+  function classes(channels) {
+    var items = channels[0].peers.map(function (p) {
       return {
         id: p.id,
         channel: 'channel-placeholder',

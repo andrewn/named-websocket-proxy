@@ -1,8 +1,8 @@
-var peers   = [],
+var channels = [],
     events  = [],
     el = document.querySelector('#vis'),
-    vis     = vis(el, peers, events),
-    tracker = peerTracker(peers, events);
+    vis     = vis(el, channels, events),
+    tracker = peerTracker(channels, events);
 
 vis.init();
 
