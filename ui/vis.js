@@ -8,7 +8,7 @@ window.vis = function (el, peers, events) {
   function init() {
     console.log('init');
 
-    var diameter = 960;
+    var diameter = 400;
 
     format = d3.format(",d");
     color = d3.scale.category20c();
@@ -31,16 +31,21 @@ window.vis = function (el, peers, events) {
 
     node.enter().append("g")
         .attr("class", "node")
-        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+        .on('click', function (d) {
+          d.socket.send('ping');
+        });
 
-    node.exit().remove();
+    node.exit()
+      .on('click', null)
+      .remove();
 
     node.append("title")
         .text(function(d) { return d.id + ": " + format(d.value); });
 
     node.append("circle")
         .attr("r", function(d) { return d.r; })
-        .style("fill", function(d) { return hashStringToColor(d.id); });
+        .style("fill", function(d) { return d.ping ? '#333' : hashStringToColor(d.id); });
 
     node.append("text")
         .attr("dy", ".3em")
@@ -51,7 +56,13 @@ window.vis = function (el, peers, events) {
   // Returns a flattened hierarchy containing all leaf nodes under the root.
   function classes(root) {
     var items = peers.map(function (p) {
-      return { id: p.id, channel: 'channel-placeholder', value: 100 };
+      return {
+        id: p.id,
+        channel: 'channel-placeholder',
+        socket: p.socket,
+        value: 100,
+        ping: p.ping
+      };
     });
     return { children: items };
   }

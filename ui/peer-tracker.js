@@ -39,6 +39,7 @@ window.peerTracker = function (peers, events) {
     }
     socket.onmessage = function (evt) {
       log("🚶PEER: Direct message from peer: " + evt.data, evt);
+      peer.ping = true;
     }
     socket.onclose = function (evt) {
       log("🚶PEER: Peer disconnected", peer.id);
