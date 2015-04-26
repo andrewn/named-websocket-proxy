@@ -31,7 +31,7 @@ window.peerTracker = function (channels, events) {
 
   socket.ondisconnect = function(evt) {
     log("👪CHANNEL: Peer disconnected: " + evt.detail.target.id, evt);
-    _.remove(peers, { id: evt.detail.target.id });
+    _.remove(channel.peers, { id: evt.detail.target.id });
   };
 
   log('Started');

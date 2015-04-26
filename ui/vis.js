@@ -39,28 +39,59 @@ window.vis = function (el, channels, events) {
         .data(bubble.nodes(classes(channels))
         .filter(function(d) { return !d.children; }));
 
-    node.enter().append("g")
-        .attr("class", "node")
-        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-        .on('click', function (d) {
-          d.socket.send('direct');
-        });
+    // Peers arriving
+    var enter = node.enter().append("g");
 
-    node.exit()
-      .on('click', null)
-      .remove();
+    enter
+      .attr("class", "node")
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+      .on('click', function (d) {
+        d.socket.send('direct');
+      });
 
-    node.append("title")
-        .text(function(d) { return d.id + ": " + format(d.value); });
+    enter.append("title")
+        .text(function(d) { return d.id; });
 
-    node.append("circle")
-        .attr("r", function(d) { return d.r; })
-        .style("fill", function(d) { return d.ping ? '#333' : hashStringToColor(d.id); });
+    enter.append("circle")
+        .style("fill", function(d) { return d.ping ? '#333' : hashStringToColor(d.id); })
+        .attr("r", 0)
+        .transition()
+          .attr("r", function(d) { return d.r; });
 
-    node.append("text")
+    enter.append("text")
         .attr("dy", ".3em")
+        .text(function(d) { return d.id.substring(0, 6) + '…'; })
         .style("text-anchor", "middle")
-        .text(function(d) { return d.id.substring(0, d.r / 3); });
+        .style('opacity', 0)
+        .transition()
+          .style('opacity', 1);
+
+    // Peers leaving
+    var exit = node.exit();
+
+    exit
+      .on('click', null)
+      .transition()
+        .remove();
+
+    exit.selectAll('circle')
+      .transition()
+        .attr("r", 0);
+
+    exit.selectAll('text')
+      .style("opacity", 1)
+      .transition()
+        .style("opacity", 0);
+
+    // Update
+    var pings = node.filter(function (d) { return d.ping; });
+
+    pings.selectAll('circle')
+      .transition()
+        .ease('bounce')
+        .attr("r", function (d) { return d.r * 1.3; })
+        .transition()
+          .attr("r", function (d) { return d.r; });
   }
 
   // Returns a flattened hierarchy containing all leaf nodes under the root.
