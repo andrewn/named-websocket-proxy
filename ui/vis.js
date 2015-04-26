@@ -107,12 +107,29 @@ window.vis = function (el, channels, events) {
       .style("opacity", 1)
       .transition()
         .style("opacity", 0);
+
+    // Broadcast message
+    // Flash background
+    var broadcasts = fetchAndRemoveEvents({ name: 'broadcast' }, events);
+    if (broadcasts.length > 0) {
+      var body = d3.select('body');
+      body
+        .transition()
+          .style('background-color', '#666')
+          .transition()
+            .style('background-color', '#fff');
+    }
+  }
+
+  function fetchAndRemoveEvents(where, events) {
+    var items = _.filter(events, where);
+    _.remove(events, where);
+    return items;
   }
 
   // Returns a flattened hierarchy containing all leaf nodes under the root.
   function classes(channels, events) {
-    var pings = _.filter(events, { name: 'ping' });
-    _.remove(events, { name: 'ping' });
+    var pings = fetchAndRemoveEvents({ name: 'ping' }, events);
 
     var items = channels[0].peers.map(function (p) {
       var data = {

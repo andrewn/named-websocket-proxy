@@ -13,7 +13,7 @@ window.peerTracker = function (channels, events) {
 
   socket.onmessage = function(evt) {
     log("👪CHANNEL: Broadcast message: " + evt.data, evt);
-    events.push({ type:'channel', name: 'message', data: evt.data });
+    events.push({ type:'channel', name: 'broadcast', data: evt.data });
   };
 
   // Stop
