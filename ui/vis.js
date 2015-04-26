@@ -16,7 +16,7 @@ window.vis = function (el, channels, events) {
     bubble = d3.layout.pack()
       .sort(null)
       .size([diameter, diameter])
-      .padding(2);
+      .padding(1);
 
     // Clickable title
     d3.select(el).append('div')
@@ -35,25 +35,49 @@ window.vis = function (el, channels, events) {
   }
 
   function render() {
-    var node = svg.selectAll(".node")
-        .data(bubble.nodes(classes(channels))
-        .filter(function(d) { return !d.children; }));
+    var data = bubble.nodes( classes(channels, events) )
+                .filter(function(d) { return !d.children; });
 
-    // Peers arriving
+    var node = svg.selectAll(".node")
+        .data(data, function (d) { return d.id; });
+
+    // UPDATE selection
+    // Peers already rendered
+    node
+      .transition()
+        .attr("transform", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+
+    node.selectAll('circle')
+      .data(function (d) { return [d]; })
+      .transition()
+        .attr('r', function (d) { return d.r; });
+
+    var pings = node.filter(function (d) { return d.ping; });
+
+    pings.selectAll('circle')
+      .transition()
+        .ease('bounce')
+        .attr("r", function (d) { return d.r * 1.3; })
+        .transition()
+          .attr("r", function (d) { return d.r; });
+
+    // ENTER selection
+    // Peers that have arrived
     var enter = node.enter().append("g");
 
     enter
       .attr("class", "node")
       .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
       .on('click', function (d) {
-        d.socket.send('direct');
+        if (d.socket) { d.socket.send('direct'); }
       });
 
     enter.append("title")
         .text(function(d) { return d.id; });
 
     enter.append("circle")
-        .style("fill", function(d) { return d.ping ? '#333' : hashStringToColor(d.id); })
+        .style('opacity', 0.8)
+        .style("fill", function(d) { return hashStringToColor(d.id); })
         .attr("r", 0)
         .transition()
           .attr("r", function(d) { return d.r; });
@@ -66,7 +90,8 @@ window.vis = function (el, channels, events) {
         .transition()
           .style('opacity', 1);
 
-    // Peers leaving
+    // EXIT selection
+    // Peers that have left
     var exit = node.exit();
 
     exit
@@ -82,28 +107,22 @@ window.vis = function (el, channels, events) {
       .style("opacity", 1)
       .transition()
         .style("opacity", 0);
-
-    // Update
-    var pings = node.filter(function (d) { return d.ping; });
-
-    pings.selectAll('circle')
-      .transition()
-        .ease('bounce')
-        .attr("r", function (d) { return d.r * 1.3; })
-        .transition()
-          .attr("r", function (d) { return d.r; });
   }
 
   // Returns a flattened hierarchy containing all leaf nodes under the root.
-  function classes(channels) {
+  function classes(channels, events) {
+    var pings = _.filter(events, { name: 'ping' });
+    _.remove(events, { name: 'ping' });
+
     var items = channels[0].peers.map(function (p) {
-      return {
+      var data = {
         id: p.id,
         channel: 'channel-placeholder',
         socket: p.socket,
-        value: 100,
-        ping: p.ping
+        value: 1
       };
+      data.ping = !!_.find(pings, { id: p.id });
+      return data;
     });
     return { children: items };
   }
