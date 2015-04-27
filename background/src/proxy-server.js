@@ -4,8 +4,7 @@ var debug = require('./debug')('ProxyServer'),
     EventEmitter = require('events').EventEmitter,
     inherits = require('util').inherits;
 
-var ProxyConnections = require('./proxy-connections'),
-    Peer = require('./peer'),
+var Peer = require('./peer'),
     protocol = require('./shim-protocol');
 
 var Proxy = function (address, port) {
