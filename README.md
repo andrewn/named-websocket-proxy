@@ -3,13 +3,8 @@ Chrome Named Websocket Proxy
 
 A Google Chrome App proxy implementing [Named Websockets](https://github.com/namedwebsockets/networkwebsockets).
 
-Tested on [Chrome Canary](https://www.google.co.uk/intl/en/chrome/browser/canary.html).
-
-
 Install
 ---
-
-*NB* You MUST edit the line 14 in `background/src/app.js` to match your machine's IP.
 
 *NB:* You must build the JavaScript application for the extension. See `Development` below for instructions.
 
@@ -24,7 +19,7 @@ Running
 
 Once the app is installed into Chrome, you must 'Launch' it by either clicking the "Named WebSocket Proxy" icon from the "Chrome App Launcher Canary" or click "Launch" in the [Chrome Extensions page](chrome://extensions/).
 
-Load [test-ws.html](test-ws.html) from a local webserver to see the proxy in action. Currently this only works on the same machine.
+Load [ui/vis.html](ui/vis.html) from a local webserver to see the proxy in action. Circles will appear as new pages join the channel `bbc.nws.test`. Selecting a circle sends a message to that page. The target of the message should animate to show it has received the message.
 
 Reload
 ---
