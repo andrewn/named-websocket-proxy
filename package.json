@@ -4,6 +4,7 @@
   "description": "Chrome Named Websocket Proxy ===",
   "main": "background/src/main.js",
   "scripts": {
+    "start": "./node_modules/.bin/electron .",
     "build": "./node_modules/.bin/browserify background/src/main.js -o dist/background.js",
     "dev": "./node_modules/.bin/watchify -v -d background/src/main.js -o dist/background.js",
     "test": "./node_modules/.bin/mocha --recursive"
