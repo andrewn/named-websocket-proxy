@@ -14,7 +14,14 @@ function init() {
 
 // var id = _.partial(_.pluck, _, 'id');
 
-function key(d) { return d.id || d.name || d.ip; }
+function key(d) {
+  if (d.id) {
+    return d.id + '(' + d.name + ')';
+  }
+  else {
+    return d.name || d.ip;
+  }
+}
 
 function update(obj) {
   var datas = _.pairs(obj);
@@ -32,8 +39,9 @@ function update(obj) {
     .append('ul');
 
   var li = div.select('ul').selectAll('li').data(function (d) { return d[1]; }, key);
-  var liEnter = li
-    .enter()
+  var liEnter = li.enter()
     .append('li')
     .text(key);
+
+  var liExit = li.exit().remove();
 }
