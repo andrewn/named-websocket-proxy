@@ -19,7 +19,7 @@ Running
 
 Once the app is installed into Chrome, you must 'Launch' it by either clicking the "Named WebSocket Proxy" icon from the "Chrome App Launcher Canary" or click "Launch" in the [Chrome Extensions page](chrome://extensions/).
 
-Load [ui/vis.html](ui/vis.html) from a local webserver to see the proxy in action. Circles will appear as new pages join the channel `bbc.nws.test`. Selecting a circle sends a message to that page. The target of the message should animate to show it has received the message.
+Load [ui/vis.html](ui/vis.html) from a local webserver to see the proxy in action. Circles will appear as new pages join the channel `mediascape.test`. Selecting a circle sends a message to that page. The target of the message should animate to show it has received the message.
 
 Reload
 ---

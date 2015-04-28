@@ -22,7 +22,7 @@
       document.querySelector('#log').innerHTML += d() + ': ' + msg + '\n';
     }
 
-    var channel = new NetworkWebSocket('bbc.nws.test');
+    var channel = new NetworkWebSocket('mediascape.test');
 
     channel.onopen = function (evt) {
       log('👪CHANNEL: Connected', evt);
