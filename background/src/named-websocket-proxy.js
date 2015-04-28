@@ -149,7 +149,7 @@ App.prototype.createExternalProxy = function () {
 
       externalLogger.log('New external request', socket, url, request);
 
-      var ip = request.headers.Host,
+      var ip = request.headers.host,
           proxy = _.find(this.proxies, { ip: ip, socket: socket });
 
       if (proxy) {

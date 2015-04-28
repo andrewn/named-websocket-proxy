@@ -29,7 +29,7 @@ var Proxy = function (address, port) {
         debug.log('Channel: ', channelName);
       }
 
-      this.emit('connection', channelName, ws);
+      this.emit('connection', channelName, ws, request);
     }
   }.bind(this));
 
