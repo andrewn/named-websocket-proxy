@@ -15,8 +15,9 @@ Running
 
 The application currently launches no windows, but the terminal that you start from will output logging information.
 
-Load [ui/vis.html](ui/vis.html) from a local webserver to see the proxy in action. Circles will appear as new pages join the channel `mediascape.test`. Selecting a circle sends a message to that page. The target of the message should animate to show it has received the message.
+To quit the app, press `Ctl+C`.
 
+Load [ui/vis.html](ui/vis.html) from a local webserver to see the proxy in action. Circles will appear as new pages join the channel `mediascape.test`. Selecting a circle sends a message to that page. The target of the message should animate to show it has received the message.
 
 Development
 ---
