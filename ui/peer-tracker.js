@@ -1,6 +1,6 @@
 window.peerTracker = function (channels, events) {
 
-  var name = 'bbc.nws.test',
+  var name = 'mediascape.test',
       socket  = new NetworkWebSocket(name),
       channel = { id: name, socket: socket, peers: [] };
 
