@@ -218,7 +218,7 @@ App.prototype.createPeerDiscovery = function () {
       discoLogger.log('created remote peer', peer);
       // Connect remote peer to local peers and vice versa
       // FIXME: Find in channel
-      Channel.connectPeers(peer, this.localPeers);
+      Channel.connectPeers(peer, Channel.peers(channel, this.localPeers) );
     };
 
   }.bind(this));
