@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+
+var NWSProxy = require('../background/src/named-websocket-proxy');
+
+new NWSProxy().init();
