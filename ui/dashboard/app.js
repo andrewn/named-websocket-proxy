@@ -16,7 +16,7 @@ function init() {
 
 function key(d) {
   if (d.id) {
-    return d.id + '(' + d.name + ')';
+    return d.id.substring(0, 5) + ' (' + d.channel + ')';
   }
   else {
     return d.name || d.ip;
