@@ -169,6 +169,7 @@ App.prototype.createExternalProxy = function () {
 
 App.prototype.createPeerDiscovery = function () {
   var discoLogger = debug('Discovery');
+  // TODO: Use actual hostname: os.hostname()
   this.peerDiscovery = new PeerDiscovery(Peer.id());
   discoLogger.log('Starting with ', this.publicIp, this.publicPort);
   this.peerDiscovery.init(this.publicIp, this.publicPort);
