@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test multiple peers</title>
+  <style type="text/css">
+  [data-action=add] {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 100;
+    background-color: hsl(107, 50%, 50%);
+    color: #fff;
+  }
+
+  [data-action=add]:hover {
+    background-color: hsl(107, 50%, 60%);
+  }
+
+  [data-action=delete] {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 100;
+    background-color: hsl(0, 50%, 50%);
+    color: #fff;
+  }
+
+  [data-action=delete]:hover {
+    background-color: hsl(0, 50%, 60%);
+  }
+
+  button {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    vertical-align: middle;
+    border: none;
+    border-radius: 50em;
+    font-size: 3rem;
+    box-shadow: 3px 3px 0px 0px #999;
+  }
+  button:active {
+    box-shadow: 3px 3px 0px -5px #999;
+  }
+
+  .frames {
+    margin-left: 72px;
+  }
+  .frame {
+    position: relative;
+    display: inline-block;
+    width: 400px;
+    height: 448px;
+    margin: 16px;
+  }
+  .frame > [data-action=delete] {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+  }
+  iframe {
+    border: 1px solid #eee;
+    width: 100%;
+    height: 100%;
+  }
+  </style>
+</head>
+<body>
+  <button data-action='add' title='Add'>+</button>
+  <div class="frames"></div>
+  <script>
+  var container = document.querySelector('.frames'),
+      addButton = document.querySelector('[data-action=add]');
+
+  addButton.addEventListener('click', addFrame);
+
+  function addFrame() {
+    var el = createFrameEl(),
+        button = el.querySelector('[data-action=delete]');
+
+    button.addEventListener('click', function () {
+      container.removeChild(el);
+      el = null;
+      button = null;
+    });
+
+    container.appendChild(el);
+  }
+
+  function createFrameEl() {
+    var el = document.createElement('div');
+    el.className = 'frame';
+    el.innerHTML = '<button data-action="delete">-</button><iframe src="ui/vis.html"></iframe>';
+    return el;
+  }
+  </script>
+</body>
+</html>
