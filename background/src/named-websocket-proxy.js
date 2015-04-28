@@ -1,5 +1,7 @@
 var Promise = require('es6-promise').Promise,
-    _ = require('lodash');
+    _ = require('lodash'),
+    os = require('os'),
+    WebSocket = require('faye-websocket').Client;
 
 var debug = require('./debug'),
     appLogger = debug('App'),
@@ -10,7 +12,6 @@ var debug = require('./debug'),
     Proxy = require('./proxy'),
     Router = require('./router'),
     networkUtils = require('./network-utils');
-;
 
 var App = function () {
   this.initialized = false;
@@ -24,8 +25,11 @@ App.prototype.init = function () {
     return;
   }
 
+  // networkUtils
+  //   .findv4Ip(chrome.system.network.getNetworkInterfaces)
+  //   .then(this.startWithPublicIp.bind(this), appLogger.error);
   networkUtils
-    .findv4Ip(chrome.system.network.getNetworkInterfaces)
+    .findv4Ip()
     .then(this.startWithPublicIp.bind(this), appLogger.error);
 }
 
@@ -78,7 +82,6 @@ App.prototype.createLocalProxy = function () {
   this.proxyServer.on('connection', function (channelName, socket) {
 
     // TODO: Move into tested helper?
-
     var channel = Channel.find(channelName, this.channels),
         peers,
         sourcePeer;
@@ -100,7 +103,7 @@ App.prototype.createLocalProxy = function () {
     // Broadcast local peer externally
     this.peerDiscovery.advertisePeer(sourcePeer);
 
-    socket.addEventListener('message', function (evt) {
+    socket.on('message', function (evt) {
 
       proxyLogger.log('socket.message: ', evt);
 
@@ -116,7 +119,7 @@ App.prototype.createLocalProxy = function () {
 
     }.bind(this));
 
-    socket.addEventListener('close', function (evt) {
+    socket.on('close', function (evt) {
       proxyLogger.log('socket.close:', sourcePeer);
 
       Router.handleLocalDisconnection(channel, sourcePeer, this.localPeers, this.remotePeers);
@@ -194,7 +197,7 @@ App.prototype.createPeerDiscovery = function () {
       socket = new WebSocket('ws://' + record.ip + ':' + record.port + '/remote');
       discoLogger.log('creating proxy connection to: ', record.ip + ':' + record.port);
 
-      socket.addEventListener('open', function () {
+      socket.on('open', function () {
         discoLogger.log('proxy connection open');
         proxy = { ip: record.ip, socket: socket };
         this.proxies.push(proxy);
@@ -224,7 +227,7 @@ App.prototype.createPeerDiscovery = function () {
 };
 
 App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
-  proxy.socket.addEventListener('message', function (evt) {
+  proxy.socket.on('message', function (evt) {
     logger.log('socket.message: ', evt);
     var payload = {}, target;
     try {
@@ -305,7 +308,7 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
     }*/
   }.bind(this));
 
-  proxy.socket.addEventListener('close', function () {
+  proxy.socket.on('close', function () {
     logger.log('proxy connection closed');
     Proxy.close(proxy, this.proxies, this.remotePeers, this.localPeers);
 

@@ -1,6 +1,7 @@
+var WebSocket = require('faye-websocket'),
+    http      = require('http');
+
 var debug = require('./debug')('ProxyServer'),
-    HttpServer = require('../lib/http-server'),
-    WebSocketServer = require('../lib/websocket-server'),
     EventEmitter = require('events').EventEmitter,
     inherits = require('util').inherits;
 
@@ -9,46 +10,34 @@ var Peer = require('./peer'),
 
 var Proxy = function (address, port) {
 
-  this.httpServer_ = new HttpServer(debug);
-  this.wsServer_ = new WebSocketServer(this.httpServer_);
+  this.httpServer_ = http.createServer();
 
-  this.httpServer_.addEventListener('ready', function (info) {
-    this.emit('ready', info);
+  this.httpServer_.on('upgrade', function(request, socket, body) {
+    if (WebSocket.isWebSocket(request)) {
+      debug.log('WebSocket request');
+      var ws = new WebSocket(request, socket, body);
+
+      if ('url' in request) {
+        channelName = request.url.replace(/^\//, '');
+      }
+
+      if (!channelName) {
+        debug.log('No channel name, closing WS');
+        ws.close();
+        return;
+      } else {
+        debug.log('Channel: ', channelName);
+      }
+
+      this.emit('connection', channelName, ws);
+    }
+  }.bind(this));
+
+  this.httpServer_.on('listening', function () {
+    this.emit('ready', { localPort: this.httpServer_.address().port });
   }.bind(this));
 
   this.httpServer_.listen(port, address);
-
-  this.httpServer_.addEventListener('request', function (req) {
-    debug.log('An HTTP request!', req);
-    req.writeHead(404, {});
-    req.end();
-
-    // Keep socket open until we explicitly
-    // call req.end()
-    return true;
-  });
-
-  this.wsServer_.addEventListener('request', function (req) {
-    debug.log('WebSocket request', req);
-    var keepConnectionOpen, channelName, socket;
-
-    if ('url' in req.headers) {
-      channelName = req.headers.url.replace(/^\//, '');
-    }
-
-    if (!channelName) {
-      req.reject();
-      keepConnectionOpen = false;
-      return keepConnectionOpen;
-    } else {
-      socket = req.accept();
-      keepConnectionOpen = true;
-    }
-
-    this.emit('connection', channelName, socket, req);
-
-    return keepConnectionOpen;
-  }.bind(this));
 };
 
 inherits(Proxy, EventEmitter);

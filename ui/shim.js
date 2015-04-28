@@ -35,7 +35,7 @@
 		var url = endpointUrlBase.replace('{{$}}', 9009);
 
 		// *Actual* web socket connection to Network Web Socket proxy
-		var webSocket = new WebSocket(url + channelName, subprotocols);
+		var webSocket = new WebSocket(url + channelName, subprotocols || []);
 
 webSocket.addEventListener('open', function () { console.log('Real ws open'); });
 webSocket.addEventListener('message', function (msg) { console.log('Real ws msg', msg); });

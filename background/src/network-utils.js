@@ -1,20 +1,17 @@
 var _ = require('lodash'),
-    Promise = require('es6-promise').Promise;
+    Promise = require('es6-promise').Promise,
+    os = require('os');
 
-function findv4Ip(apiFunc) {
+function findv4Ip() {
   return new Promise(function (resolve, reject) {
-    apiFunc(function (interfaces) {
-      var v4IpMatcher = /\d+\.\d+\.\d+\.\d+/,
-          addresses = _.pluck(interfaces, 'address');
+    var interfaces =  _(os.networkInterfaces()).values().flatten().value();
 
-      var ip = _.find(addresses, function (ip) {
-        return v4IpMatcher.test(ip);
-      });
+    var v4IpMatcher = /\d+\.\d+\.\d+\.\d+/,
+        addresses = _.filter(interfaces, { internal: false, family: 'IPv4' });
 
-      if (ip == null) { throw Error('cannot find IP address'); }
+    if (addresses == null || addresses.length === 0) { throw Error('cannot find IP address'); }
 
-      resolve(ip);
-    });
+    resolve(addresses[0].address);
   });
 }
 

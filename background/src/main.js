@@ -1,45 +1,32 @@
+var app = require('app');
+
+// Report crashes to our server.
+//require('crash-reporter').start();
+
 var debug = require('./debug')('main'),
-    App = require('./app');
+    NWSProxy = require('./named-websocket-proxy');
 
-console.log('Background page initialised');
+console.log('Main process initialised');
 
-var config = {
-  tcp: {
-    address: '0.0.0.0', // bind to all interfaces
-    port: 9009
-  },
-  consoleType: 'basic' // 'advanced' or 'basic'
-};
+// Our proxy application
+var nwsProxy = new NWSProxy();
 
-var app = new App();
-
-chrome.app.runtime.onLaunched.addListener(function() {
-  debug.log('App launched.');
-  app.init();
-  launchWindow();
+// Quit when all windows are closed.
+// Except on Mac as default is for app to stay open
+app.on('window-all-closed', function() {
+  if (process.platform != 'darwin') {
+    app.quit();
+  }
 });
 
-chrome.runtime.onSuspend.addListener(function() {
-  debug.log('App is being suspended');
-  app.destroy();
+// Quit when all windows are closed.
+app.on('will-quit', function() {
+  debug.log('NWSProxy is being quit');
+  nwsProxy.destroy();
 });
 
-function pathForConsoleType(type) {
-  return config.consoleType === 'basic'
-          ? 'ui/main.html'
-          : 'ui/console.html';
-}
-
-function launchWindow() {
-  chrome.app.window.create(pathForConsoleType(config.consoleType), {
-    id: 'main-window',
-    bounds: {
-      width: 800,
-      height: 300,
-      left: 100,
-      top: 100
-    },
-    minWidth: 800,
-    minHeight: 600
-  });
-}
+// This method will be called when Electron has done everything
+// initialization and ready for creating browser windows.
+app.on('ready', function() {
+  nwsProxy.init();
+});
