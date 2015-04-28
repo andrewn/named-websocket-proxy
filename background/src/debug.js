@@ -1,4 +1,5 @@
-var _ = require('lodash');
+var _ = require('lodash'),
+    inspect = require('util').inspect;
 
 var logLevels = ['log', 'info', 'warn', 'error', 'log'],
     logLevel = 'log',
@@ -10,12 +11,22 @@ module.exports = function (thing) {
     instance[type] = function () {
       var indexOfLevel = logLevels.indexOf(type);
       if (indexOfLevel >= currentLevelIndex) {
-        console[type].apply(console, [thing + ': '].concat( _.toArray(arguments) ));
+        var objsToLog = [thing + ': '].concat( _.toArray(arguments) ).map(prepareForOutput);
+        console[type].apply(console, objsToLog);
       }
     };
   });
   return instance;
 };
+
+function prepareForOutput(obj) {
+  switch(typeof obj) {
+    case 'string':
+      return obj;
+    default:
+      return inspect(obj, { depth: 0, colors: true });
+  }
+}
 
 module.exports.setLogLevel = function (level) {
   logLevel = level;
