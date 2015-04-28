@@ -208,6 +208,7 @@ App.prototype.createPeerDiscovery = function () {
         this.addHandlersForRemoteProxy(proxy, discoLogger);
       }.bind(this));
     } else {
+      socket = proxy.socket;
       createRemotePeer.bind(this)();
     }
 
