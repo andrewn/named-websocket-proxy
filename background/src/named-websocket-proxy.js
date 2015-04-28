@@ -96,9 +96,14 @@ App.prototype.createLocalProxy = function () {
 
     proxyLogger.log('New local peer', sourcePeer);
 
+    // Connect local peers to new peer
     locals = Channel.peers(channel, this.localPeers);
     Channel.connectPeers(sourcePeer, locals);
     this.localPeers.push(sourcePeer);
+
+    // Connect remote peers to new peer
+    remotes = Channel.peers(channel, this.remotePeers);
+    Channel.connectPeers(sourcePeer, remotes);
 
     // Broadcast local peer externally
     this.peerDiscovery.advertisePeer(sourcePeer);
@@ -217,7 +222,6 @@ App.prototype.createPeerDiscovery = function () {
       this.remotePeers.push(peer);
       discoLogger.log('created remote peer', peer);
       // Connect remote peer to local peers and vice versa
-      // FIXME: Find in channel
       Channel.connectPeers(peer, Channel.peers(channel, this.localPeers) );
     };
 
