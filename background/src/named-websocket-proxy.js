@@ -247,7 +247,7 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
 
   proxy.socket.on('close', function () {
     logger.log('proxy connection closed');
-    Proxy.close(proxy, this.proxies, this.remotePeers, this.localPeers);
+    Proxy.close(proxy, this.proxies, this.localPeers, this.remotePeers);
 
     logger.log('localPeers', this.localPeers);
     logger.log('remotePeers', this.remotePeers);
