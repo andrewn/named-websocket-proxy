@@ -1,6 +1,11 @@
 var WebSocket = require('faye-websocket'),
     http      = require('http');
 
+// Add custom inspect to socket for logging
+WebSocket.prototype.inspect = function () {
+  return '<Faye WebSocket>'
+};
+
 var debug = require('./debug')('ProxyServer'),
     EventEmitter = require('events').EventEmitter,
     inherits = require('util').inherits;

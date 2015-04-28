@@ -152,7 +152,7 @@ App.prototype.createExternalProxy = function () {
     }.bind(this));
     this.externalServer.on('connection', function (url, socket, request) {
 
-      externalLogger.log('New external request', socket, url, request);
+      externalLogger.log('New external request', socket, url);
 
       var ip = request.headers.host,
           proxy = _.find(this.proxies, { ip: ip, socket: socket });
