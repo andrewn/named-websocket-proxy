@@ -78,15 +78,17 @@ describe('Router', function () {
           c = { id: 'peer-c', channel: 'channel-1', ip: '1.2.1.1', socket: createSocketMock() },
           msg = { "action":"broadcast", "data":"all" },
           locals = [a, b],
+          remotes = [c],
           channels = [channel];
 
-      Router.handleLocalDisconnection(channel, a, locals, [c], channels);
+      Router.handleLocalDisconnection(channel, a, locals, remotes);
 
       assert.ok(!a.socket.send.called, 'a was called');
       assert.ok( b.socket.send.called, 'b was not called');
       assert.ok( c.socket.send.called, 'c was not called');
 
       assert.deepEqual(locals, [b]);
+      assert.deepEqual(remotes, [c]);
       assert.deepEqual(channels, [channel]);
     });
     it('removes channel if no local peers left', function () {
