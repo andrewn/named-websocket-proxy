@@ -13,6 +13,7 @@ module.exports = {
       return {
         type: 'PTR',
         name: '_ws._tcp.local',
+        ttl : 75 * 60,
         data: instanceName(channelName, peerId)
       }
     },
@@ -47,6 +48,7 @@ module.exports = {
       return {
         type: 'SRV',
         name: instanceName(channelName, peerId),
+        ttl : 75 * 60,
         data: {
           port: port,
           target: host(hostname)
@@ -76,6 +78,7 @@ module.exports = {
       return {
         type: 'TXT',
         name: instanceName(channelName, peerId),
+        ttl : 75 * 60,
         data: "path=" + url
       };
     },
@@ -101,6 +104,7 @@ module.exports = {
       return {
         type: 'A',
         name: host(hostname),
+        ttl : 120,
         data: ip
       };
     },

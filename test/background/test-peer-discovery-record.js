@@ -15,6 +15,7 @@ describe('PeerDiscoveryRecord', function () {
           expected = {
             'name': '_ws._tcp.local',
             'type': 'PTR',
+            'ttl' : 75 * 60,
             'data': 'my-channel-name[my-peer-id]._ws._tcp.local'
           };
 
@@ -32,6 +33,7 @@ describe('PeerDiscoveryRecord', function () {
           expected = {
             'name': 'a-channel-name[abc123-peer-id]._ws._tcp.local',
             'type': 'SRV',
+            'ttl' : 75 * 60,
             'data': {
               'port': 12345,
               'target': 'a-host-name.local'
@@ -51,6 +53,7 @@ describe('PeerDiscoveryRecord', function () {
           expected = {
             'name': 'a-channel-name[abc123-peer-id]._ws._tcp.local',
             'type': 'TXT',
+            'ttl' : 75 * 60,
             'data': 'path=/a-channel-name/abc123-peer-id/%s'
           };
 
@@ -63,6 +66,7 @@ describe('PeerDiscoveryRecord', function () {
           expected = {
             'name': 'a-host-name.local',
             'type': 'A',
+            'ttl' : 120,
             'data': '1.1.2.19'
           };
 
