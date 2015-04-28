@@ -2,7 +2,7 @@
   "name": "named-websocket-proxy",
   "version": "0.0.0",
   "description": "Named Websocket Proxy",
-  "main": "background/src/named-websocket-proxy.js",
+  "main": "background/src/main.js",
   "bin": "./bin/cli",
   "scripts": {
     "start": "./node_modules/.bin/electron .",
