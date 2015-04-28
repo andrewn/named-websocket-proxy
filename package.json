@@ -1,8 +1,8 @@
 {
-  "name": "namedwebsocket-proxy",
+  "name": "named-websocket-proxy",
   "version": "0.0.0",
-  "description": "Chrome Named Websocket Proxy ===",
-  "main": "background/src/main.js",
+  "description": "Named Websocket Proxy",
+  "main": "background/src/named-websocket-proxy.js",
   "bin": "./bin/cli",
   "scripts": {
     "start": "./node_modules/.bin/electron .",
