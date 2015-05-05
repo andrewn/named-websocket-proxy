@@ -31,13 +31,6 @@
       "class": 1,
       "ttl": 0,
       "data": "path=/bbc.nws.test/b2c5b427-823a-4161-978e-ba3830a7d556/%s"
-    },
-    {
-      "name": "andrewn.local",
-      "type": "A",
-      "class": 1,
-      "ttl": 0,
-      "data": "192.168.0.4"
     }
   ],
   "authorities": [],

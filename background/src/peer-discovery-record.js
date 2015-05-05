@@ -123,7 +123,7 @@ module.exports = {
     var r = module.exports,
         peerId, channelName, url, ip, port;
 
-    if (ptr == null || srv == null || txt == null || a == null) {
+    if (ptr == null || srv == null || txt == null) {
       return null;
     }
 
@@ -139,8 +139,10 @@ module.exports = {
     return data.isGoodbye;
   },
   isAdvert: function (data) {
-    var requiredKeys = ['ip', 'port', 'channelName', 'peerId'];
-    return _.every( requiredKeys, _.partial(_.has, data) );
+    var requiredKeysAdvert  = ['ip', 'port', 'channelName', 'peerId'],
+        requiredKeysGoodbye = ['port', 'channelName', 'peerId'],
+        keys = data.isGoodbye ? requiredKeysGoodbye : requiredKeysAdvert;
+    return _.every( keys, _.partial(_.has, data) );
   }
 }
 

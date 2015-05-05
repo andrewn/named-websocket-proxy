@@ -87,6 +87,18 @@ describe('PeerDiscoveryRecord', function () {
 
       assert.deepEqual(actual, expected);
     });
+    it('should handle missing A records if TTL is 0', function () {
+      var data = require('../fixtures/peer-goodbye.json').answers,
+          actual = PeerDiscoveryRecord.parse(data[0], data[1], data[2], data[3]),
+          expected = {
+            peerId: 'b2c5b427-823a-4161-978e-ba3830a7d556',
+            channelName: 'bbc.nws.test',
+            port: 9009,
+            isGoodbye: true
+          };
+
+      assert.deepEqual(actual, expected);
+    });
   });
   describe('.isGoodbye() .isAdvert()', function () {
     it('if SRV has TTL of 0', function () {
