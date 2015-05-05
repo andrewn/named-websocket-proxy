@@ -81,10 +81,31 @@ describe('PeerDiscoveryRecord', function () {
             peerId: 'b2c5b427-823a-4161-978e-ba3830a7d556',
             channelName: 'bbc.nws.test',
             port: 9009,
-            ip: '192.168.0.4'
+            ip: '192.168.0.4',
+            isGoodbye: false
           };
 
       assert.deepEqual(actual, expected);
+    });
+  });
+  describe('.isGoodbye() .isAdvert()', function () {
+    it('if SRV has TTL of 0', function () {
+      var data = require('../fixtures/peer-goodbye.json').answers,
+          dns = PeerDiscoveryRecord.parse(data[0], data[1], data[2], data[3]),
+          isGoodbye = PeerDiscoveryRecord.isGoodbye(dns),
+          isAdvert  = PeerDiscoveryRecord.isAdvert(dns);
+
+      assert.ok(isGoodbye);
+      assert.ok(isAdvert);
+    });
+    it('if SRV does not have TTL of 0', function () {
+      var data = require('../fixtures/peer-new.json').answers,
+          dns = PeerDiscoveryRecord.parse(data[0], data[1], data[2], data[3]),
+          isGoodbye = PeerDiscoveryRecord.isGoodbye(dns),
+          isAdvert  = PeerDiscoveryRecord.isAdvert(dns);
+
+      assert.ok(!isGoodbye);
+      assert.ok(isAdvert);
     });
   });
 });

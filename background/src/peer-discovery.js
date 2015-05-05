@@ -12,7 +12,8 @@ var PeerDiscovery = function (hostname, opts) {
   this.hostname = hostname;
 
   this.mdnsOpts = {
-    port: this.opts.mdnsPort || 5407
+    port: this.opts.mdnsPort || 5407,
+    loopback: false // do not receive our own packets
   };
 };
 
@@ -49,6 +50,27 @@ PeerDiscovery.prototype.advertisePeer = function (peer) {
   });
 };
 
+PeerDiscovery.prototype.cancelPeerAdvert = function (peer) {
+  var params = {
+      channelName: peer.channel,
+      peerId: peer.id,
+      url: '/nourl', //peer.url,
+      hostname: this.hostname,
+      ip: this.ip,
+      port: this.port
+    },
+    srv = record.srv.encode(params),
+    txt = record.txt.encode(params),
+    answers;
+
+    srv.ttl = 0;
+    txt.ttl = 0;
+
+    this.mdns.response({
+      answers: [srv, txt]
+    });
+};
+
 PeerDiscovery.prototype.handleResponse = function (dns) {
   var ptr, srv, txt, a, data, peer;
 
@@ -56,6 +78,11 @@ PeerDiscovery.prototype.handleResponse = function (dns) {
     return;
   }
 
+  // TODO: This code currently assumes that all
+  //       answers will be for the same resource.
+  //       Should cache records and allow
+  //       expiry/goodbye messages. Also, re-query
+  //       when TTL expires.
   ptr = _.find(dns.answers, { type: 'PTR' });
   srv = _.find(dns.answers, { type: 'SRV' });
   txt = _.find(dns.answers, { type: 'TXT' });
@@ -68,7 +95,11 @@ PeerDiscovery.prototype.handleResponse = function (dns) {
     return;
   }
 
-  if ( record.isValid(data)  ) {
+  // FIXME: Won't work since `data` is already parsed
+  //        into a data structure by this time.
+  if ( record.isGoodbye(data)  ) {
+    this.emit('goodbye', data);
+  } else if ( record.isAdvert(data) ) {
     this.emit('discover', data);
   } else {
     console.warn('Advertising packet did not contain a whole peer advert', data);

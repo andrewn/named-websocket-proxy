@@ -129,6 +129,9 @@ App.prototype.createLocalProxy = function () {
 
       Router.handleLocalDisconnection(channel, sourcePeer, this.localPeers, this.remotePeers);
 
+      // Broadcast that this peer has gone via mDNS
+      this.peerDiscovery.cancelPeerAdvert(sourcePeer);
+
       // TODO: close proxy connection if no one using it?
 
     }.bind(this));
@@ -226,6 +229,12 @@ App.prototype.createPeerDiscovery = function () {
     };
 
   }.bind(this));
+
+  this.peerDiscovery.on('goodbye', function (reply) {
+    discoLogger.log('goodbye');
+    // TODO: Reply remote peer and notify
+  }.bind(this));
+
   this.peerDiscovery.on('query', function (reply) {
     discoLogger.log('query');
     // TODO: call reply to records

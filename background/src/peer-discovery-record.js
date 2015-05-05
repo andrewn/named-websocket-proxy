@@ -58,7 +58,8 @@ module.exports = {
     decode: function (record) {
       if (record && record.data && record.data.port) {
         return {
-          port: record.data.port
+          port: record.data.port,
+          isGoodbye: record.ttl === 0
         }
       } else {
         return null;
@@ -134,7 +135,10 @@ module.exports = {
       r.a.decode(a)
     );
   },
-  isValid: function (data) {
+  isGoodbye: function (data) {
+    return data.isGoodbye;
+  },
+  isAdvert: function (data) {
     var requiredKeys = ['ip', 'port', 'channelName', 'peerId'];
     return _.every( requiredKeys, _.partial(_.has, data) );
   }
