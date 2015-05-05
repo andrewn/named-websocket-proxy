@@ -230,9 +230,10 @@ App.prototype.createPeerDiscovery = function () {
 
   }.bind(this));
 
-  this.peerDiscovery.on('goodbye', function (peer) {
-    discoLogger.log('goodbye. peer: ', peer);
-    var channel = Channel.find(peer.channel, this.channels);
+  this.peerDiscovery.on('goodbye', function (record) {
+    discoLogger.log('goodbye. record: ', record);
+    var channel = Channel.find(record.channelName, this.channels),
+        peer    = Peer.find(record.peerId, this.remotePeers);
 
     Router.handleRemoteDisconnection(channel, peer, this.localPeers, this.remotePeers);
   }.bind(this));
