@@ -3,6 +3,8 @@ Named Websocket Proxy
 
 A desktop and command-line proxy implementing [Named Websockets](https://github.com/namedwebsockets/networkwebsockets).
 
+The proxy uses the [Electron](http://electron.atom.io/) framework to enable the proxy to be written in JavaScript/node.js. The UI is written in HTML/CSS/JavaScript.
+
 Install
 ---
 
