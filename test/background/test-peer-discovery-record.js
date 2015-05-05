@@ -15,6 +15,7 @@ describe('PeerDiscoveryRecord', function () {
           expected = {
             'name': '_ws._tcp.local',
             'type': 'PTR',
+            'ttl' : 75 * 60,
             'data': 'my-channel-name[my-peer-id]._ws._tcp.local'
           };
 
@@ -32,6 +33,7 @@ describe('PeerDiscoveryRecord', function () {
           expected = {
             'name': 'a-channel-name[abc123-peer-id]._ws._tcp.local',
             'type': 'SRV',
+            'ttl' : 75 * 60,
             'data': {
               'port': 12345,
               'target': 'a-host-name.local'
@@ -51,6 +53,7 @@ describe('PeerDiscoveryRecord', function () {
           expected = {
             'name': 'a-channel-name[abc123-peer-id]._ws._tcp.local',
             'type': 'TXT',
+            'ttl' : 75 * 60,
             'data': 'path=/a-channel-name/abc123-peer-id/%s'
           };
 
@@ -63,6 +66,7 @@ describe('PeerDiscoveryRecord', function () {
           expected = {
             'name': 'a-host-name.local',
             'type': 'A',
+            'ttl' : 120,
             'data': '1.1.2.19'
           };
 
@@ -77,10 +81,43 @@ describe('PeerDiscoveryRecord', function () {
             peerId: 'b2c5b427-823a-4161-978e-ba3830a7d556',
             channelName: 'bbc.nws.test',
             port: 9009,
-            ip: '192.168.0.4'
+            ip: '192.168.0.4',
+            isGoodbye: false
           };
 
       assert.deepEqual(actual, expected);
+    });
+    it('should handle missing A records if TTL is 0', function () {
+      var data = require('../fixtures/peer-goodbye.json').answers,
+          actual = PeerDiscoveryRecord.parse(data[0], data[1], data[2], data[3]),
+          expected = {
+            peerId: 'b2c5b427-823a-4161-978e-ba3830a7d556',
+            channelName: 'bbc.nws.test',
+            port: 9009,
+            isGoodbye: true
+          };
+
+      assert.deepEqual(actual, expected);
+    });
+  });
+  describe('.isGoodbye() .isAdvert()', function () {
+    it('if SRV has TTL of 0', function () {
+      var data = require('../fixtures/peer-goodbye.json').answers,
+          dns = PeerDiscoveryRecord.parse(data[0], data[1], data[2], data[3]),
+          isGoodbye = PeerDiscoveryRecord.isGoodbye(dns),
+          isAdvert  = PeerDiscoveryRecord.isAdvert(dns);
+
+      assert.ok(isGoodbye);
+      assert.ok(isAdvert);
+    });
+    it('if SRV does not have TTL of 0', function () {
+      var data = require('../fixtures/peer-new.json').answers,
+          dns = PeerDiscoveryRecord.parse(data[0], data[1], data[2], data[3]),
+          isGoodbye = PeerDiscoveryRecord.isGoodbye(dns),
+          isAdvert  = PeerDiscoveryRecord.isAdvert(dns);
+
+      assert.ok(!isGoodbye);
+      assert.ok(isAdvert);
     });
   });
 });

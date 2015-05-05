@@ -10,14 +10,14 @@
       "name": "_ws._tcp.local",
       "type": "PTR",
       "class": 1,
-      "ttl": 4500,
+      "ttl": 0,
       "data": "bbc.nws.test[b2c5b427-823a-4161-978e-ba3830a7d556]._ws._tcp.local"
     },
     {
       "name": "bbc.nws.test[b2c5b427-823a-4161-978e-ba3830a7d556]._ws._tcp.local",
       "type": "SRV",
       "class": 1,
-      "ttl": 4500,
+      "ttl": 0,
       "data": {
         "priority": 0,
         "weight": 0,
@@ -29,15 +29,8 @@
       "name": "bbc.nws.test[b2c5b427-823a-4161-978e-ba3830a7d556]._ws._tcp.local",
       "type": "TXT",
       "class": 1,
-      "ttl": 4500,
+      "ttl": 0,
       "data": "path=/bbc.nws.test/b2c5b427-823a-4161-978e-ba3830a7d556/%s"
-    },
-    {
-      "name": "andrewn.local",
-      "type": "A",
-      "class": 1,
-      "ttl": 120,
-      "data": "192.168.0.4"
     }
   ],
   "authorities": [],

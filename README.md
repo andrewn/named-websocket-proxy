@@ -1,48 +1,51 @@
-Chrome Named Websocket Proxy
+Named Websocket Proxy
 ===
 
-A Google Chrome App proxy implementing [Named Websockets](https://github.com/namedwebsockets/networkwebsockets).
+A desktop and command-line proxy implementing [Named Websockets](https://github.com/namedwebsockets/networkwebsockets).
 
 Install
 ---
 
-*NB:* You must build the JavaScript application for the extension. See `Development` below for instructions.
+1. Run `npm install` in this directory
 
-1. Open [Chrome Extensions page](chrome://extensions/);
-2. Select "Load unpacked extension..."
-3. Navigate to this directory
-4. "Select"
-5. The "Named WebSocket Proxy" application appears in the list
-
-Running
+Running desktop app
 ---
 
-Once the app is installed into Chrome, you must 'Launch' it by either clicking the "Named WebSocket Proxy" icon from the "Chrome App Launcher Canary" or click "Launch" in the [Chrome Extensions page](chrome://extensions/).
+1. Type `npm start` in this directory
+
+A window will appear showing the debugging dashboard view. The terminal will log any debug messages from the main process.
+
+To quit the app, press `Ctl+C`.
+
+Running command-line app
+---
+
+1. Type `bin/cli` in this directory
+
+The terminal will log any debug messages from the main process.
+
+To quit the app, press `Ctl+C`.
+
+Demo
+---
 
 Load [ui/vis.html](ui/vis.html) from a local webserver to see the proxy in action. Circles will appear as new pages join the channel `mediascape.test`. Selecting a circle sends a message to that page. The target of the message should animate to show it has received the message.
-
-Reload
----
-
-If you run into any issues with the app, visit the [Chrome Extensions page](chrome://extensions/) and click "Reload". This will stop the app, close all the windows and then launch it again.
-
-Sometimes you must disable the app by clicking on the "Enabled" checkbox and then clicking again. Then you must "Launch" the app again.
 
 Development
 ---
 
-[Browserify](http://browserify.org/) is used to bundle all JavaScript into a single file. When developing, you must do the following:
+The app uses [Electron](http://electron.atom.io/), a node.js/Chromium application runner.
 
-1. Have a working node and npm installation
-2. Run `npm install` in this directory
-3. Run `npm run build` to generate the `dist/background.js` file.
-
-When developing, it's useful to have the JavaScript rebuilt whenever the source files change. Use `npm run dev` to do that.
+The file `backround/src/main.js` is the entry-point to the application and run in the `node.js` execution context.
 
 Tests
 ---
 
 After installing the test harness using `npm install`, you can run tests using `npm test`.
+
+For a more visual way to test, use [./test-multi-peers.html](./test-multi-peers.html). This allows you to quickly launch and remove test pages.
+
+The app will launch a dashboard window showing the internal state of the proxy allowing you to observe what the proxy thinks is currently available and connected.
 
 Authors and License
 ---

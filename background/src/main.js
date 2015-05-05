@@ -1,45 +1,68 @@
+var app = require('app'),
+    BrowserWindow = require('browser-window'),
+    path = require('path');
+
+// Report crashes to our server.
+//require('crash-reporter').start();
+
+var mainWindow = null;
+
 var debug = require('./debug')('main'),
-    App = require('./app');
+    NWSProxy = require('./named-websocket-proxy');
 
-console.log('Background page initialised');
+console.log('Main process initialised');
 
-var config = {
-  tcp: {
-    address: '0.0.0.0', // bind to all interfaces
-    port: 9009
-  },
-  consoleType: 'basic' // 'advanced' or 'basic'
-};
+// Our proxy application
+var nwsProxy = new NWSProxy();
 
-var app = new App();
-
-chrome.app.runtime.onLaunched.addListener(function() {
-  debug.log('App launched.');
-  app.init();
-  launchWindow();
+// Quit when all windows are closed.
+// Except on Mac as default is for app to stay open
+app.on('window-all-closed', function() {
+  if (process.platform != 'darwin') {
+    app.quit();
+  }
 });
 
-chrome.runtime.onSuspend.addListener(function() {
-  debug.log('App is being suspended');
-  app.destroy();
+// Quit when all windows are closed.
+app.on('will-quit', function() {
+  debug.log('NWSProxy is being quit');
+  nwsProxy.destroy();
 });
 
-function pathForConsoleType(type) {
-  return config.consoleType === 'basic'
-          ? 'ui/main.html'
-          : 'ui/console.html';
+// This method will be called when Electron has done everything
+// initialization and ready for creating browser windows.
+app.on('ready', function() {
+  nwsProxy.init();
+  openMainWindow();
+});
+
+setInterval(sync, 1000);
+
+function sync() {
+  if (nwsProxy && mainWindow) {
+    mainWindow.send('internals', {
+      channels: nwsProxy.channels,
+      locals  : nwsProxy.localPeers,
+      remotes : nwsProxy.remotePeers,
+      proxies : nwsProxy.proxies,
+      adverts : nwsProxy.discoveryAdverts
+    });
+  }
 }
 
-function launchWindow() {
-  chrome.app.window.create(pathForConsoleType(config.consoleType), {
-    id: 'main-window',
-    bounds: {
-      width: 800,
-      height: 300,
-      left: 100,
-      top: 100
-    },
-    minWidth: 800,
-    minHeight: 600
+function openMainWindow() {
+  var p = path.join(__dirname, '..', '..', 'ui/dashboard/index.html');
+  // Create the browser window.
+  mainWindow = new BrowserWindow({width: 800, height: 600});
+
+  // and load the index.html of the app.
+  mainWindow.loadUrl('file://' + p);
+
+  // Emitted when the window is closed.
+  mainWindow.on('closed', function() {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    mainWindow = null;
   });
 }

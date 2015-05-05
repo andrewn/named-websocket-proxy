@@ -5,6 +5,9 @@ var sinon = require('sinon'),
 
 chai.use(chaiAsPromised);
 
+// Do not log
+require('../background/src/debug').setLogLevel('warn');
+
 module.exports = {
   assert: chai.assert,
   spy: sinon.spy,

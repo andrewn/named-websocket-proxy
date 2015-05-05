@@ -10,7 +10,8 @@ var PeerDiscovery = require('../../background/src/peer-discovery'),
     Peer = require('../../background/src/peer'),
     createMdnsMock;
 
-var newPeerMdnsData = require('../fixtures/peer-new.json');
+var newPeerMdnsData = require('../fixtures/peer-new.json'),
+    peerGoodbyeMdnsData = require('../fixtures/peer-goodbye.json');
 
 createMdnsMock = function () {
   var constructor = function (opts) {
@@ -18,7 +19,11 @@ createMdnsMock = function () {
 
     var instance = new EventEmitter();
     instance.port = opts.port;
-    instance.respond = spy();
+    instance.responseSpy = spy();
+    instance.respond = function (params, cb) {
+      if(cb) { cb(); }
+      instance.responseSpy.apply(instance.responseSpy, arguments);
+    };
     instance.response = instance.respond;
 
     constructor.instance = instance;
@@ -54,7 +59,10 @@ describe('PeerDiscovery', function () {
     });
   });
   describe('.advertisePeer()', function () {
-    it('should construct Named WebSocket DNS-SD records for Peer', function () {
+    it('should construct Named WebSocket DNS-SD records for Peer', function (done) {
+      // Increase timeout since spread 1 sec apart
+      this.timeout(2100);
+
       var mdns = createMdnsMock(),
           c = createChannelMock(),
           p = { id: 'peer-a', channel: 'channel-a', socket: createSocketMock() },
@@ -62,12 +70,36 @@ describe('PeerDiscovery', function () {
 
       pd.init('123.123.1.1', 5678);
 
-      pd.advertisePeer(p);
-
-      assert.ok(mdns.instance.response.called);
+      pd.advertisePeer(p)
+        .then(function () {
+          assert.ok(mdns.instance.responseSpy.called);
+          assert.equal(mdns.instance.responseSpy.callCount, 3);
+          done();
+        });
     });
   });
-  describe('.on peer:discover', function () {
+  describe('.cancelPeerAdvert()', function () {
+    it('should construct goodbye DNS-SD PTR, SRV and TXT records for Peer with TTL 0', function (done) {
+      // Increase timeout since spread 1 sec apart
+      this.timeout(2100);
+
+      var mdns = createMdnsMock(),
+          c = createChannelMock(),
+          p = { id: 'peer-a', channel: 'channel-a', socket: createSocketMock() },
+          pd = new PeerDiscovery('my-computer', { mdns: mdns });
+
+      pd.init('123.123.1.1', 5678);
+
+      pd.cancelPeerAdvert(p)
+        .then(function () {
+          assert.ok(mdns.instance.responseSpy.called);
+          assert.equal(mdns.instance.responseSpy.callCount, 3);
+          assert.equal(mdns.instance.responseSpy.firstCall.args[0].answers.length, 3);
+          done();
+        });
+    });
+  });
+  describe('.on discover', function () {
     it('should parse incoming DNS-SD responses into Peer', function (done) {
       mdns = createMdnsMock();
       pd = new PeerDiscovery('my-computer', { mdns: mdns });
@@ -82,6 +114,23 @@ describe('PeerDiscovery', function () {
       });
 
       mdns.instance.emit('response', newPeerMdnsData);
+    })
+  });
+  describe('.on goodbye', function () {
+    it('should parse incoming DNS-SD responses into Peer', function (done) {
+      mdns = createMdnsMock();
+      pd = new PeerDiscovery('my-computer', { mdns: mdns });
+
+      pd.init('123.123.1.1', 5678);
+
+      pd.on('goodbye', function (data) {
+        assert.equal(data.peerId, 'b2c5b427-823a-4161-978e-ba3830a7d556');
+        assert.equal(data.channelName, 'bbc.nws.test');
+
+        done();
+      });
+
+      mdns.instance.emit('response', peerGoodbyeMdnsData);
     })
   });
 });

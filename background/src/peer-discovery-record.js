@@ -13,6 +13,7 @@ module.exports = {
       return {
         type: 'PTR',
         name: '_ws._tcp.local',
+        ttl : 75 * 60,
         data: instanceName(channelName, peerId)
       }
     },
@@ -47,6 +48,7 @@ module.exports = {
       return {
         type: 'SRV',
         name: instanceName(channelName, peerId),
+        ttl : 75 * 60,
         data: {
           port: port,
           target: host(hostname)
@@ -56,7 +58,8 @@ module.exports = {
     decode: function (record) {
       if (record && record.data && record.data.port) {
         return {
-          port: record.data.port
+          port: record.data.port,
+          isGoodbye: record.ttl === 0
         }
       } else {
         return null;
@@ -76,6 +79,7 @@ module.exports = {
       return {
         type: 'TXT',
         name: instanceName(channelName, peerId),
+        ttl : 75 * 60,
         data: "path=" + url
       };
     },
@@ -101,6 +105,7 @@ module.exports = {
       return {
         type: 'A',
         name: host(hostname),
+        ttl : 120,
         data: ip
       };
     },
@@ -118,7 +123,7 @@ module.exports = {
     var r = module.exports,
         peerId, channelName, url, ip, port;
 
-    if (ptr == null || srv == null || txt == null || a == null) {
+    if (ptr == null || srv == null || txt == null) {
       return null;
     }
 
@@ -130,9 +135,14 @@ module.exports = {
       r.a.decode(a)
     );
   },
-  isValid: function (data) {
-    var requiredKeys = ['ip', 'port', 'channelName', 'peerId'];
-    return _.every( requiredKeys, _.partial(_.has, data) );
+  isGoodbye: function (data) {
+    return data.isGoodbye;
+  },
+  isAdvert: function (data) {
+    var requiredKeysAdvert  = ['ip', 'port', 'channelName', 'peerId'],
+        requiredKeysGoodbye = ['port', 'channelName', 'peerId'],
+        keys = data.isGoodbye ? requiredKeysGoodbye : requiredKeysAdvert;
+    return _.every( keys, _.partial(_.has, data) );
   }
 }
 

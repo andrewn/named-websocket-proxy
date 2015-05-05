@@ -7,6 +7,7 @@ var Channel = require('./channel'),
 var Router  = {
   handleLocalMessage: handleLocalMessage,
   handleLocalDisconnection: handleLocalDisconnection,
+  handleRemoteDisconnection: handleRemoteDisconnection,
   handleRemoteMessage: handleRemoteMessage
 };
 
@@ -72,18 +73,19 @@ function handleLocalDisconnection(channel, disconnectingPeer, localPeers, remote
     logger.log('No local peers in channel, deleting');
     _.remove(channels, { name: channel.name });
   }
+}
 
-  return {
-    locals: localPeers,
-    channels: channels
-  };
+function handleRemoteDisconnection(channel, disconnectingPeer, localPeers, remotePeers) {
+  // Notify local peers in channel
+  var localPeersInChannel = Channel.peers(channel, localPeers);
+  Channel.disconnectPeers(disconnectingPeer, localPeersInChannel);
+
+  // Remove remote peer from list
+  Peer.remove(disconnectingPeer, remotePeers);
 }
 
 function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
-  var state = {
-        remotes: remotePeers
-      },
-      target, localPeer, remotePeer;
+  var target, localPeer, remotePeer;
 
   if (msg.action === 'broadcast' || msg.action === 'message') {
     logger.log('Remote ' + msg.action, msg);
@@ -99,13 +101,13 @@ function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
     remotePeer = Peer.find(msg.target, remotePeers);
     if (remotePeer) {
       logger.warn('Remote peer already exists', msg);
-      return state;
+      return;
     }
 
     localPeer = Peer.find(msg.source, localPeers);
     if (!localPeer) {
       logger.warn('Cannot find target local peer', msg);
-      return state;
+      return;
     }
 
     remotePeer = Peer.create({ name: localPeer.channel }, proxy.socket, proxy.ip, msg.target);
@@ -113,28 +115,29 @@ function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
     remotePeers.push(remotePeer);
     logger.log('Added remote peer: ', remotePeer);
 
-    return state;
+    return;
   } else if (msg.action === 'disconnect') {
+    logger.info('Disconnect message received, doing nothing. peer: ', msg.source);
+    /*
     notifiedLocalPeer = Peer.find(msg.source, localPeers);
 
     if (!notifiedLocalPeer) {
       logger.warn('Cannot find target local peer', msg);
-      return state;
+      return;
     }
 
     disconnectedRemotePeer = Peer.find(msg.target, remotePeers);
     if (!disconnectedRemotePeer) {
       logger.warn('Cannot find source remote peer', msg);
-      return state;
+      return;
     }
 
     Channel.disconnectPeers(disconnectedRemotePeer, [notifiedLocalPeer]);
     Peer.remove(disconnectedRemotePeer, remotePeers);
 
     logger.log('Removed disconnect remote peer', msg);
+    */
   } else {
     logger.warn('Unknown action: ', msg.action, msg);
   }
-
-  return state;
 }

@@ -1,5 +1,7 @@
 var Promise = require('es6-promise').Promise,
-    _ = require('lodash');
+    _ = require('lodash'),
+    os = require('os'),
+    WebSocket = require('faye-websocket').Client;
 
 var debug = require('./debug'),
     appLogger = debug('App'),
@@ -10,7 +12,6 @@ var debug = require('./debug'),
     Proxy = require('./proxy'),
     Router = require('./router'),
     networkUtils = require('./network-utils');
-;
 
 var App = function () {
   this.initialized = false;
@@ -24,8 +25,11 @@ App.prototype.init = function () {
     return;
   }
 
+  // networkUtils
+  //   .findv4Ip(chrome.system.network.getNetworkInterfaces)
+  //   .then(this.startWithPublicIp.bind(this), appLogger.error);
   networkUtils
-    .findv4Ip(chrome.system.network.getNetworkInterfaces)
+    .findv4Ip()
     .then(this.startWithPublicIp.bind(this), appLogger.error);
 }
 
@@ -78,7 +82,6 @@ App.prototype.createLocalProxy = function () {
   this.proxyServer.on('connection', function (channelName, socket) {
 
     // TODO: Move into tested helper?
-
     var channel = Channel.find(channelName, this.channels),
         peers,
         sourcePeer;
@@ -93,14 +96,19 @@ App.prototype.createLocalProxy = function () {
 
     proxyLogger.log('New local peer', sourcePeer);
 
+    // Connect local peers to new peer
     locals = Channel.peers(channel, this.localPeers);
     Channel.connectPeers(sourcePeer, locals);
     this.localPeers.push(sourcePeer);
 
+    // Connect remote peers to new peer
+    remotes = Channel.peers(channel, this.remotePeers);
+    Channel.connectPeers(sourcePeer, remotes);
+
     // Broadcast local peer externally
     this.peerDiscovery.advertisePeer(sourcePeer);
 
-    socket.addEventListener('message', function (evt) {
+    socket.on('message', function (evt) {
 
       proxyLogger.log('socket.message: ', evt);
 
@@ -116,10 +124,13 @@ App.prototype.createLocalProxy = function () {
 
     }.bind(this));
 
-    socket.addEventListener('close', function (evt) {
+    socket.on('close', function (evt) {
       proxyLogger.log('socket.close:', sourcePeer);
 
       Router.handleLocalDisconnection(channel, sourcePeer, this.localPeers, this.remotePeers);
+
+      // Broadcast that this peer has gone via mDNS
+      this.peerDiscovery.cancelPeerAdvert(sourcePeer);
 
       // TODO: close proxy connection if no one using it?
 
@@ -144,9 +155,9 @@ App.prototype.createExternalProxy = function () {
     }.bind(this));
     this.externalServer.on('connection', function (url, socket, request) {
 
-      externalLogger.log('New external request', socket, url, request);
+      externalLogger.log('New external request', socket, url);
 
-      var ip = request.headers.Host,
+      var ip = request.headers.host,
           proxy = _.find(this.proxies, { ip: ip, socket: socket });
 
       if (proxy) {
@@ -166,6 +177,7 @@ App.prototype.createExternalProxy = function () {
 
 App.prototype.createPeerDiscovery = function () {
   var discoLogger = debug('Discovery');
+  // TODO: Use actual hostname: os.hostname()
   this.peerDiscovery = new PeerDiscovery(Peer.id());
   discoLogger.log('Starting with ', this.publicIp, this.publicPort);
   this.peerDiscovery.init(this.publicIp, this.publicPort);
@@ -194,7 +206,7 @@ App.prototype.createPeerDiscovery = function () {
       socket = new WebSocket('ws://' + record.ip + ':' + record.port + '/remote');
       discoLogger.log('creating proxy connection to: ', record.ip + ':' + record.port);
 
-      socket.addEventListener('open', function () {
+      socket.on('open', function () {
         discoLogger.log('proxy connection open');
         proxy = { ip: record.ip, socket: socket };
         this.proxies.push(proxy);
@@ -204,6 +216,7 @@ App.prototype.createPeerDiscovery = function () {
         this.addHandlersForRemoteProxy(proxy, discoLogger);
       }.bind(this));
     } else {
+      socket = proxy.socket;
       createRemotePeer.bind(this)();
     }
 
@@ -212,11 +225,29 @@ App.prototype.createPeerDiscovery = function () {
       this.remotePeers.push(peer);
       discoLogger.log('created remote peer', peer);
       // Connect remote peer to local peers and vice versa
-      // FIXME: Find in channel
-      Channel.connectPeers(peer, this.localPeers);
+      Channel.connectPeers(peer, Channel.peers(channel, this.localPeers) );
     };
 
   }.bind(this));
+
+  this.peerDiscovery.on('goodbye', function (record) {
+    discoLogger.log('goodbye. record: ', record);
+    var channel = Channel.find(record.channelName, this.channels),
+        peer    = Peer.find(record.peerId, this.remotePeers);
+
+    if (!channel) {
+      discoLogger.warn('No channel found for name: ', record.channelName);
+      return;
+    }
+
+    if (!peer) {
+      discoLogger.warn('No remote peer found with id: ', record.peerId);
+      return;
+    }
+
+    Router.handleRemoteDisconnection(channel, peer, this.localPeers, this.remotePeers);
+  }.bind(this));
+
   this.peerDiscovery.on('query', function (reply) {
     discoLogger.log('query');
     // TODO: call reply to records
@@ -224,7 +255,7 @@ App.prototype.createPeerDiscovery = function () {
 };
 
 App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
-  proxy.socket.addEventListener('message', function (evt) {
+  proxy.socket.on('message', function (evt) {
     logger.log('socket.message: ', evt);
     var payload = {}, target;
     try {
@@ -234,80 +265,11 @@ App.prototype.addHandlersForRemoteProxy = function (proxy, logger) {
     }
 
     Router.handleRemoteMessage(payload, this.localPeers, this.remotePeers, proxy);
-
-    /*if (payload.action === 'broadcast') {
-      logger.log('Broadcast action: ', payload);
-      // find source peer in remotePeers
-      var source = Peer.find(payload.source, this.remotePeers);
-
-      if (!source) {
-        logger.warn('Broadcast message from peer that is not in remote peers list', payload);
-        return;
-      }
-
-      var channel = Channel.find(source.channel, this.channels),
-          peers = Channel.peers(channel, this.localPeers);
-
-      if (!channel) {
-        logger.warn('Cannot find channel', payload.channel, this.channels);
-        return;
-      }
-
-      if (!peers || peers.length == 0) {
-        logger.warn('No local peers for broadcast message', payload, peers);
-        return;
-      }
-
-      // Send to all local peers in channel
-      Channel.broadcastMessage(source, peers, payload.data);
-    }
-    else if (payload.action === 'message') {
-      logger.log('Direct message action: ', payload, this.remotePeers);
-      var source = Peer.find(payload.source, this.remotePeers);
-      target = Peer.find(payload.target, this.localPeers);
-      if (!source) {
-         logger.log('Cannot find remote peer: ', source);
-         return;
-      }
-      if (target) {
-        logger.log('Sending to local peer: ', payload);
-        Channel.directMessage(source, target, payload.data);
-        return;
-      }
-
-      logger.warn('Message for peer that cannot be found: ', payload);
-    }
-    else if (payload.action === 'connect') {
-      logger.log('Connect message action: ', payload);
-
-      var channel = Channel.find(payload.channel, this.channels);
-
-      if (!channel) {
-        logger.warn('No local channel found', payload.channel);
-      }
-
-      var peer = Peer.find(payload.source, this.remotePeers);
-      if (peer) {
-        logger.warn('Connect message for existing remote peer', peer);
-        return;
-      }
-
-      peer = Peer.create(channel, proxy.socket, payload.target);
-      var target = Peer.find(payload.source, this.localPeers);
-      if (!target) {
-        logger.warn('Connect message target not found in local peers: ', payload, this.localPeers);
-      } else {
-        logger.log('Local target peer: ', target);
-      }
-      Channel.connectPeers(peer, [target]);
-      this.remotePeers.push(peer);
-      logger.log('Added remote peer: ', peer);
-    }*/
   }.bind(this));
 
-  proxy.socket.addEventListener('close', function () {
+  proxy.socket.on('close', function () {
     logger.log('proxy connection closed');
-    Proxy.close(proxy, this.proxies, this.remotePeers, this.localPeers);
+    Proxy.close(proxy, this.proxies, this.localPeers, this.remotePeers);
 
     logger.log('localPeers', this.localPeers);
     logger.log('remotePeers', this.remotePeers);
