@@ -235,6 +235,16 @@ App.prototype.createPeerDiscovery = function () {
     var channel = Channel.find(record.channelName, this.channels),
         peer    = Peer.find(record.peerId, this.remotePeers);
 
+    if (!channel) {
+      discoLogger.warn('No channel found for name: ', record.channelName);
+      return;
+    }
+
+    if (!peer) {
+      discoLogger.warn('No remote peer found with id: ', record.peerId);
+      return;
+    }
+
     Router.handleRemoteDisconnection(channel, peer, this.localPeers, this.remotePeers);
   }.bind(this));
 
