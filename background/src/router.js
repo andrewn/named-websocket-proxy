@@ -7,6 +7,7 @@ var Channel = require('./channel'),
 var Router  = {
   handleLocalMessage: handleLocalMessage,
   handleLocalDisconnection: handleLocalDisconnection,
+  handleRemoteDisconnection: handleRemoteDisconnection,
   handleRemoteMessage: handleRemoteMessage
 };
 
@@ -72,6 +73,15 @@ function handleLocalDisconnection(channel, disconnectingPeer, localPeers, remote
     logger.log('No local peers in channel, deleting');
     _.remove(channels, { name: channel.name });
   }
+}
+
+function handleRemoteDisconnection(channel, disconnectingPeer, localPeers, remotePeers, channels) {
+  // Notify local peers in channel
+  var localPeersInChannel = Channel.peers(channel, localPeers);
+  Channel.disconnectPeers(disconnectingPeer, localPeersInChannel);
+
+  // Remove remote peer from list
+  Peer.remove(disconnectingPeer, remotePeers);
 }
 
 function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {

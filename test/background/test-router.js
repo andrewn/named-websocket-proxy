@@ -104,6 +104,28 @@ describe('Router', function () {
     });
   });
 
+  describe('handleRemoteDisconnection', function () {
+    it('sends disconnect to local peers in same channel', function () {
+      var channel = { name: 'channel-1' },
+          a = { id: 'peer-a', channel: 'channel-1', socket: createSocketMock() },
+          b = { id: 'peer-b', channel: 'channel-2', socket: createSocketMock() },
+          c = { id: 'peer-c', channel: 'channel-1', ip: '1.2.1.1', socket: createSocketMock() },
+          locals = [a, b],
+          remotes = [c],
+          channels = [channel];
+
+      Router.handleRemoteDisconnection(channel, c, locals, remotes);
+
+      assert.ok( a.socket.send.called, 'a was not called');
+      assert.ok(!b.socket.send.called, 'b was called');
+      assert.ok(!c.socket.send.called, 'c was called');
+
+      assert.deepEqual(locals, [a, b]);
+      assert.deepEqual(remotes, []);
+      assert.deepEqual(channels, [channel]);
+    });
+  });
+
   describe('handleRemoteMessage', function () {
     it('re-broadcasts to local peers', function () {
       var channel = { name: 'channel-1' },

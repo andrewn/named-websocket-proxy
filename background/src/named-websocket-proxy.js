@@ -230,9 +230,9 @@ App.prototype.createPeerDiscovery = function () {
 
   }.bind(this));
 
-  this.peerDiscovery.on('goodbye', function (reply) {
+  this.peerDiscovery.on('goodbye', function (peer) {
     discoLogger.log('goodbye');
-    // TODO: Reply remote peer and notify
+    
   }.bind(this));
 
   this.peerDiscovery.on('query', function (reply) {
