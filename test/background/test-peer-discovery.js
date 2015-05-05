@@ -19,7 +19,11 @@ createMdnsMock = function () {
 
     var instance = new EventEmitter();
     instance.port = opts.port;
-    instance.respond = spy();
+    instance.responseSpy = spy();
+    instance.respond = function (params, cb) {
+      if(cb) { cb(); }
+      instance.responseSpy.apply(instance.responseSpy, arguments);
+    };
     instance.response = instance.respond;
 
     constructor.instance = instance;
@@ -55,7 +59,10 @@ describe('PeerDiscovery', function () {
     });
   });
   describe('.advertisePeer()', function () {
-    it('should construct Named WebSocket DNS-SD records for Peer', function () {
+    it('should construct Named WebSocket DNS-SD records for Peer', function (done) {
+      // Increase timeout since spread 1 sec apart
+      this.timeout(2100);
+
       var mdns = createMdnsMock(),
           c = createChannelMock(),
           p = { id: 'peer-a', channel: 'channel-a', socket: createSocketMock() },
@@ -63,13 +70,19 @@ describe('PeerDiscovery', function () {
 
       pd.init('123.123.1.1', 5678);
 
-      pd.advertisePeer(p);
-
-      assert.ok(mdns.instance.response.called);
+      pd.advertisePeer(p)
+        .then(function () {
+          assert.ok(mdns.instance.responseSpy.called);
+          assert.equal(mdns.instance.responseSpy.callCount, 3);
+          done();
+        });
     });
   });
   describe('.cancelPeerAdvert()', function () {
-    it('should construct goodbye DNS-SD PTR, SRV and TXT records for Peer with TTL 0', function () {
+    it('should construct goodbye DNS-SD PTR, SRV and TXT records for Peer with TTL 0', function (done) {
+      // Increase timeout since spread 1 sec apart
+      this.timeout(2100);
+
       var mdns = createMdnsMock(),
           c = createChannelMock(),
           p = { id: 'peer-a', channel: 'channel-a', socket: createSocketMock() },
@@ -77,10 +90,13 @@ describe('PeerDiscovery', function () {
 
       pd.init('123.123.1.1', 5678);
 
-      pd.cancelPeerAdvert(p);
-
-      assert.ok(mdns.instance.response.called);
-      assert.equal(mdns.instance.response.firstCall.args[0].answers.length, 3);
+      pd.cancelPeerAdvert(p)
+        .then(function () {
+          assert.ok(mdns.instance.responseSpy.called);
+          assert.equal(mdns.instance.responseSpy.callCount, 3);
+          assert.equal(mdns.instance.responseSpy.firstCall.args[0].answers.length, 3);
+          done();
+        });
     });
   });
   describe('.on discover', function () {

@@ -1,5 +1,6 @@
 var multicastDNS = require('multicast-dns'),
     EventEmitter = require('events').EventEmitter,
+    Promise = require('es6-promise').Promise,
     _ = require('lodash'),
     inherits = require('util').inherits;
 
@@ -45,10 +46,23 @@ PeerDiscovery.prototype.advertisePeer = function (peer) {
 
   logger.log('advertisePeer', params, answers);
 
-  this.mdns.response({
-    answers: answers
-  });
+  // multicast DNS spec indicates that we should announce
+  // between 2-8 times.
+  // OS X mdns services sends 3
+  return Promise.all(
+    _.times(3, createAnswerResponder(this.mdns, answers))
+  );
 };
+
+function createAnswerResponder(mdns, answers) {
+  return function (callCount) {
+    return new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        mdns.response({ answers: answers }, resolve);
+      }, 1000 * callCount);
+    });
+  }
+}
 
 PeerDiscovery.prototype.cancelPeerAdvert = function (peer) {
   var params = {
@@ -62,15 +76,15 @@ PeerDiscovery.prototype.cancelPeerAdvert = function (peer) {
     ptr = record.ptr.encode(params),
     srv = record.srv.encode(params),
     txt = record.txt.encode(params),
-    answers;
+    answers = [ptr, srv, txt];
 
     ptr.ttl = 0;
     srv.ttl = 0;
     txt.ttl = 0;
 
-    this.mdns.response({
-      answers: [ptr, srv, txt]
-    });
+    return Promise.all(
+      _.times(3, createAnswerResponder(this.mdns, answers))
+    );
 };
 
 PeerDiscovery.prototype.handleResponse = function (dns) {
