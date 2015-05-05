@@ -69,7 +69,7 @@ describe('PeerDiscovery', function () {
     });
   });
   describe('.cancelPeerAdvert()', function () {
-    it('should construct goodbye DNS-SD SRV and TXT records for Peer with TTL 0', function () {
+    it('should construct goodbye DNS-SD PTR, SRV and TXT records for Peer with TTL 0', function () {
       var mdns = createMdnsMock(),
           c = createChannelMock(),
           p = { id: 'peer-a', channel: 'channel-a', socket: createSocketMock() },
@@ -80,6 +80,7 @@ describe('PeerDiscovery', function () {
       pd.cancelPeerAdvert(p);
 
       assert.ok(mdns.instance.response.called);
+      assert.equal(mdns.instance.response.firstCall.args[0].answers.length, 3);
     });
   });
   describe('.on discover', function () {

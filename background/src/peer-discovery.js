@@ -59,15 +59,17 @@ PeerDiscovery.prototype.cancelPeerAdvert = function (peer) {
       ip: this.ip,
       port: this.port
     },
+    ptr = record.ptr.encode(params),
     srv = record.srv.encode(params),
     txt = record.txt.encode(params),
     answers;
 
+    ptr.ttl = 0;
     srv.ttl = 0;
     txt.ttl = 0;
 
     this.mdns.response({
-      answers: [srv, txt]
+      answers: [ptr, srv, txt]
     });
 };
 
