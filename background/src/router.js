@@ -75,7 +75,7 @@ function handleLocalDisconnection(channel, disconnectingPeer, localPeers, remote
   }
 }
 
-function handleRemoteDisconnection(channel, disconnectingPeer, localPeers, remotePeers, channels) {
+function handleRemoteDisconnection(channel, disconnectingPeer, localPeers, remotePeers) {
   // Notify local peers in channel
   var localPeersInChannel = Channel.peers(channel, localPeers);
   Channel.disconnectPeers(disconnectingPeer, localPeersInChannel);
