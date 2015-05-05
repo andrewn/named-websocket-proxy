@@ -117,6 +117,8 @@ function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
 
     return;
   } else if (msg.action === 'disconnect') {
+    logger.info('Disconnect message received, doing nothing. peer: ', msg.source);
+    /*
     notifiedLocalPeer = Peer.find(msg.source, localPeers);
 
     if (!notifiedLocalPeer) {
@@ -134,6 +136,7 @@ function handleRemoteMessage(msg, localPeers, remotePeers, proxy) {
     Peer.remove(disconnectedRemotePeer, remotePeers);
 
     logger.log('Removed disconnect remote peer', msg);
+    */
   } else {
     logger.warn('Unknown action: ', msg.action, msg);
   }
